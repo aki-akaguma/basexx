@@ -7,16 +7,18 @@ use rstest_reuse::{self, *};
 fn test_base64_1() {
     let inp = b"ABCDEFGHIJK".to_vec();
     let oup = "QUJDREVGR0hJSks".to_string();
-    assert_eq!(encode_base64(&inp), oup);
+    let base64 = Base64::default();
+    assert_eq!(base64.encode(&inp), oup);
 }
 
 #[test]
 fn test_base64_2() {
     let inp = b"ABCDEFGHIJK".to_vec();
     let oup = "QUJDREVGR0hJSks".to_string();
-    let r1 = encode_base64(&inp);
+    let base64 = Base64::default();
+    let r1 = base64.encode(&inp);
     assert_eq!(r1, oup);
-    let r2 = decode_base64(&r1);
+    let r2 = base64.decode(&r1);
     assert_eq!(r2, inp);
 }
 */
@@ -47,12 +49,14 @@ fn two_simple_case_1(#[case] input: &[u8], #[case] output: &str) {}
 fn base64_encode_test(#[case] input: &[u8], #[case] output: &str) {
     let inp = input.to_vec();
     let oup = output.to_string();
-    assert_eq!(encode_base64(&inp), oup);
+    let base64 = Base64::default();
+    assert_eq!(base64.encode(&inp).unwrap(), oup);
 }
 
 #[apply(two_simple_case_1)]
 fn base64_decode_test(#[case] output: &[u8], #[case] input: &str) {
     let inp = input.to_string();
     let oup = output.to_vec();
-    assert_eq!(decode_base64(&inp), oup);
+    let base64 = Base64::default();
+    assert_eq!(base64.decode(&inp).unwrap(), oup);
 }
