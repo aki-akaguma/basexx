@@ -1,3 +1,46 @@
+mod ascii_graphic_set;
+use ascii_graphic_set::*;
+
+/*
+ * ref.)
+ *     https://en.wikipedia.org/wiki/Base64
+*/
+
+#[derive(Debug)]
+pub enum EncodeError {
+    InvalidIndex(u8),
+}
+
+#[derive(Debug)]
+pub enum DecodeError {
+    InvalidByte(u8),
+    InvalidLength(usize),
+}
+
+#[derive(Debug)]
+pub struct Base64 {
+    ags: AsciiGraphicSet,
+}
+
+impl Default for Base64 {
+    fn default() -> Self {
+        Base64::new()
+    }
+}
+impl Base64 {
+    pub fn new() -> Self {
+        Self {
+            ags: AsciiGraphicSet::new(),
+        }
+    }
+    pub fn encode(&self, a: &[u8]) -> Result<String, EncodeError> {
+        _encode_base64(&self.ags, a)
+    }
+    pub fn decode(&self, a: &str) -> Result<Vec<u8>, DecodeError> {
+        _decode_base64(&self.ags, a)
+    }
+}
+
 /*
  * Base64 format:
  *      chunk from 8bit sequence to 6bit sequence:
@@ -6,14 +49,7 @@
  *          011110 10_0010 1010_01 000101
  *      result from 3 bytes to 4bytes
 */
-const CMAP64: [u8; 64] = [
-    b'A', b'B', b'C', b'D', b'E', b'F', b'G', b'H', b'I', b'J', b'K', b'L', b'M', b'N', b'O', b'P',
-    b'Q', b'R', b'S', b'T', b'U', b'V', b'W', b'X', b'Y', b'Z', b'a', b'b', b'c', b'd', b'e', b'f',
-    b'g', b'h', b'i', b'j', b'k', b'l', b'm', b'n', b'o', b'p', b'q', b'r', b's', b't', b'u', b'v',
-    b'w', b'x', b'y', b'z', b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'+', b'/',
-];
-
-pub fn encode_base64(a: &[u8]) -> String {
+fn _encode_base64(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     let mut r = Vec::new();
     let mut iter = a.chunks_exact(3);
     let mut nx = iter.next();
@@ -55,13 +91,23 @@ pub fn encode_base64(a: &[u8]) -> String {
         }
         _ => unreachable!(),
     }
-    let rr: Vec<u8> = r.iter().map(|&b| CMAP64[b as usize]).collect();
-    let s = String::from_utf8_lossy(&rr).to_string();
-    assert!(s.len() == rr.len());
-    s
+    let rr: Result<Vec<u8>, EncodeError> = r
+        .iter()
+        .map(|&b| match ags.get(b) {
+            Some(ascii) => Ok(ascii),
+            None => Err(EncodeError::InvalidIndex(b)),
+        })
+        .collect();
+    let rrr = match rr {
+        Ok(rrr) => rrr,
+        Err(err) => return Err(err),
+    };
+    let s = String::from_utf8_lossy(&rrr).to_string();
+    assert!(s.len() == rrr.len());
+    Ok(s)
 }
 
-pub fn decode_base64(a: &str) -> Vec<u8> {
+fn _decode_base64(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     /*
     let mut r = Vec::new();
     let a = a.as_bytes();
@@ -73,17 +119,21 @@ pub fn decode_base64(a: &str) -> Vec<u8> {
         }
     }
     */
-    let r: Vec<u8> = a
+    let r: Result<Vec<u8>, _> = a
         .as_bytes()
         .iter()
         .map(|&b| {
-            if let Some(n) = CMAP64.iter().position(|&x| x == b) {
-                n as u8
+            if let Some(n) = ags.position(b) {
+                Ok(n)
             } else {
-                unreachable!();
+                Err(DecodeError::InvalidByte(b))
             }
         })
         .collect();
+    let r = match r {
+        Ok(r) => r,
+        Err(err) => return Err(err),
+    };
     let mut rr = Vec::new();
     let mut iter = r.chunks_exact(4);
     let mut nx = iter.next();
@@ -103,7 +153,7 @@ pub fn decode_base64(a: &str) -> Vec<u8> {
     let aa = iter.remainder();
     match aa.len() {
         0 => (),
-        1 => unreachable!(),
+        1 => return Err(DecodeError::InvalidLength(a.len())),
         2 => {
             let c0 = aa[0];
             let c1 = aa[1];
@@ -121,9 +171,9 @@ pub fn decode_base64(a: &str) -> Vec<u8> {
             rr.push(v0);
             rr.push(v1);
         }
-        _ => unreachable!(),
+        _ => return Err(DecodeError::InvalidLength(a.len())),
     }
-    rr
+    Ok(rr)
 }
 
 #[cfg(test)]
@@ -134,27 +184,30 @@ mod tests {
     fn it_works_1() {
         let inp = b"ABCDEFGHIJKL".to_vec();
         let oup = "QUJDREVGR0hJSktM".to_string();
-        let r1 = encode_base64(&inp);
+        let ags = AsciiGraphicSet::new();
+        let r1 = _encode_base64(&ags, &inp).unwrap();
         assert_eq!(r1, oup);
-        let r2 = decode_base64(&r1);
+        let r2 = _decode_base64(&ags, &r1).unwrap();
         assert_eq!(r2, inp);
     }
     #[test]
     fn it_works_2() {
         let inp = b"ABCDEFGHIJK".to_vec();
         let oup = "QUJDREVGR0hJSks".to_string();
-        let r1 = encode_base64(&inp);
+        let ags = AsciiGraphicSet::new();
+        let r1 = _encode_base64(&ags, &inp).unwrap();
         assert_eq!(r1, oup);
-        let r2 = decode_base64(&r1);
+        let r2 = _decode_base64(&ags, &r1).unwrap();
         assert_eq!(r2, inp);
     }
     #[test]
     fn it_works_3() {
         let inp = b"ABCDEFGHIJ".to_vec();
         let oup = "QUJDREVGR0hJSg".to_string();
-        let r1 = encode_base64(&inp);
+        let ags = AsciiGraphicSet::new();
+        let r1 = _encode_base64(&ags, &inp).unwrap();
         assert_eq!(r1, oup);
-        let r2 = decode_base64(&r1);
+        let r2 = _decode_base64(&ags, &r1).unwrap();
         assert_eq!(r2, inp);
     }
 }
