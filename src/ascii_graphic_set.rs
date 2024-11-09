@@ -13,7 +13,10 @@ pub enum AgsError {
 
 #[derive(Debug)]
 pub struct AsciiGraphicSet {
-    cmap: Vec<u8>,
+    // binary to ascii map
+    binmap: Vec<u8>,
+    // ascii to binary map
+    a128map: Vec<i8>,
 }
 
 /*
@@ -32,19 +35,31 @@ impl AsciiGraphicSet {
     pub fn with_slice(a: &[u8]) -> Self {
         assert!(a.len() <= u8::MAX as usize);
         assert_eq!(a.iter().position(|&x| !x.is_ascii_graphic()), None);
-        Self { cmap: a.to_vec() }
+        let binmap = a.to_vec();
+        let mut a128map: Vec<i8> = vec![-1; 128];
+        for (idx, &a) in binmap.iter().enumerate() {
+            a128map[a as usize] = idx as i8;
+        }
+        Self { binmap, a128map }
     }
     #[allow(dead_code)]
     pub fn len(&self) -> usize {
-        self.cmap.len()
+        self.binmap.len()
     }
     pub fn position(&self, byte: u8) -> Option<u8> {
-        self.cmap
-            .iter()
-            .position(|&x| x == byte)
-            .map(|idx| idx as u8)
+        //self.cmap.iter().position(|&x| x == byte).map(|idx| idx as u8)
+        match self.a128map.get(byte as usize) {
+            Some(&idx) => {
+                if idx < 0 {
+                    None
+                } else {
+                    Some(idx as u8)
+                }
+            }
+            None => None,
+        }
     }
     pub fn get(&self, index: u8) -> Option<u8> {
-        self.cmap.get(index as usize).copied()
+        self.binmap.get(index as usize).copied()
     }
 }
