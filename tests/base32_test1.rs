@@ -1,0 +1,62 @@
+use basexx::*;
+use rstest::rstest;
+use rstest_reuse::{self, *};
+
+/*
+#[test]
+fn test_base32_1() {
+    let inp = b"ABCDEFGHIJK".to_vec();
+    let oup = "IFBEGRCFIZDUQSKKJM".to_string();
+    let base32 = Base32::default();
+    assert_eq!(base32.encode(&inp).unwrap(), oup);
+}
+
+#[test]
+fn test_base32_2() {
+    let inp = b"ABCDEFGHIJK".to_vec();
+    let oup = "IFBEGRCFIZDUQSKKJM".to_string();
+    let base32 = Base32::default();
+    let r1 = base32.encode(&inp).unwrap();
+    assert_eq!(r1, oup);
+    let r2 = base32.decode(&r1).unwrap();
+    assert_eq!(r2, inp);
+}
+*/
+
+#[template]
+#[rstest]
+//
+#[case(b"ABCDEFGHIJKL", "IFBEGRCFIZDUQSKKJNGA")]
+#[case(b"abcdefghijkl", "MFRGGZDFMZTWQ2LKNNWA")]
+#[case(b"0123456789+/", "GAYTEMZUGU3DOOBZFMXQ")]
+#[case(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11], "AAAQEAYEAUDAOCAJBIFQ")]
+#[case(&[244u8, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254, 255], "6T27N57Y7H5PX7H5737Q")]
+//
+#[case(b"ABCDEFGHIJK", "IFBEGRCFIZDUQSKKJM")]
+#[case(b"abcdefghijk", "MFRGGZDFMZTWQ2LKNM")]
+#[case(b"0123456789+", "GAYTEMZUGU3DOOBZFM")]
+#[case(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10], "AAAQEAYEAUDAOCAJBI")]
+#[case(&[244u8, 245, 246, 247, 248, 249, 250, 251, 252, 253, 254], "6T27N57Y7H5PX7H57Y")]
+//
+#[case(b"ABCDEFGHIJ", "IFBEGRCFIZDUQSKK")]
+#[case(b"abcdefghij", "MFRGGZDFMZTWQ2LK")]
+#[case(b"0123456789", "GAYTEMZUGU3DOOBZ")]
+#[case(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9], "AAAQEAYEAUDAOCAJ")]
+#[case(&[244u8, 245, 246, 247, 248, 249, 250, 251, 252, 253], "6T27N57Y7H5PX7H5")]
+fn two_simple_case_1(#[case] input: &[u8], #[case] output: &str) {}
+
+#[apply(two_simple_case_1)]
+fn base32_encode_test(#[case] input: &[u8], #[case] output: &str) {
+    let inp = input.to_vec();
+    let oup = output.to_string();
+    let base32 = Base32::default();
+    assert_eq!(base32.encode(&inp).unwrap(), oup);
+}
+
+#[apply(two_simple_case_1)]
+fn base32_decode_test(#[case] output: &[u8], #[case] input: &str) {
+    let inp = input.to_string();
+    let oup = output.to_vec();
+    let base32 = Base32::default();
+    assert_eq!(base32.decode(&inp).unwrap(), oup);
+}

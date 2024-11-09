@@ -8,7 +8,7 @@ fn test_base64_1() {
     let inp = b"ABCDEFGHIJK".to_vec();
     let oup = "QUJDREVGR0hJSks".to_string();
     let base64 = Base64::default();
-    assert_eq!(base64.encode(&inp), oup);
+    assert_eq!(base64.encode(&inp).unwrap(), oup);
 }
 
 #[test]
@@ -16,9 +16,9 @@ fn test_base64_2() {
     let inp = b"ABCDEFGHIJK".to_vec();
     let oup = "QUJDREVGR0hJSks".to_string();
     let base64 = Base64::default();
-    let r1 = base64.encode(&inp);
+    let r1 = base64.encode(&inp).unwrap();
     assert_eq!(r1, oup);
-    let r2 = base64.decode(&r1);
+    let r2 = base64.decode(&r1).unwrap();
     assert_eq!(r2, inp);
 }
 */
