@@ -1,3 +1,4 @@
 
 https://qiita.com/pond-e/items/d7705fdcd12591f6eeb4
 https://github.com/bitcoin/libbase58/blob/master/base58.c
+https://en.wikipedia.org/wiki/Base36
