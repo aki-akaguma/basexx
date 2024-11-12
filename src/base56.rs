@@ -51,11 +51,12 @@ impl Base56 {
  *      A B C D E F G
  *                  +-- LSB
  *      +-------------- MSB
+ *      bigendian
 */
 fn _encode_base56(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
     let zcount = a.iter().take_while(|&&x| x == 0).count();
-    let rr = {
+    let r = {
         let mut bigu = BigUint::ZERO;
         for &c in a.iter() {
             bigu *= 256u32;
@@ -69,47 +70,40 @@ fn _encode_base56(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
             r.push(rem.to_u8().unwrap());
         }
         r.reverse();
-        let mut rr = vec![0u8; zcount];
-        rr.extend_from_slice(&r);
-        rr
+        let mut r0 = vec![0u8; zcount];
+        r0.extend_from_slice(&r);
+        r0
     };
     // from binary to ascii
-    let rrr = {
-        let rrr: Result<Vec<u8>, EncodeError> = rr
-            .iter()
-            .map(|&b| match ags.get(b) {
-                Some(ascii) => Ok(ascii),
-                None => Err(EncodeError::InvalidIndex(b)),
-            })
-            .collect();
-        match rrr {
-            Ok(rrr) => rrr,
-            Err(err) => return Err(err),
-        }
+    let rr = match r
+        .iter()
+        .map(|&b| match ags.get(b) {
+            Some(ascii) => Ok(ascii),
+            None => Err(EncodeError::InvalidIndex(b)),
+        })
+        .collect::<Result<Vec<u8>, EncodeError>>()
+    {
+        Ok(rr) => rr,
+        Err(err) => return Err(err),
     };
-    let s = String::from_utf8_lossy(&rrr).to_string();
-    assert!(s.len() == rrr.len());
+    let s = String::from_utf8_lossy(&rr).to_string();
+    assert!(s.len() == rr.len());
     Ok(s)
 }
 
 fn _decode_base56(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
-    let r = {
-        let r: Result<Vec<u8>, _> = a
-            .as_bytes()
-            .iter()
-            .map(|&b| {
-                if let Some(n) = ags.position(b) {
-                    Ok(n)
-                } else {
-                    Err(DecodeError::InvalidByte(b))
-                }
-            })
-            .collect();
-        match r {
-            Ok(r) => r,
-            Err(err) => return Err(err),
-        }
+    let r = match a
+        .as_bytes()
+        .iter()
+        .map(|&b| match ags.position(b) {
+            Some(n) => Ok(n),
+            None => Err(DecodeError::InvalidByte(b)),
+        })
+        .collect::<Result<Vec<u8>, _>>()
+    {
+        Ok(r) => r,
+        Err(err) => return Err(err),
     };
     // decode binary
     let zcount = r.iter().take_while(|&&x| x == 0).count();
