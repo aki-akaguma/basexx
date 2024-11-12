@@ -9,5 +9,22 @@ num-integer = "0.1"
 num-traits = "0.2"
 
 [dev-dependencies]
+criterion = "0.5"
 rstest = "0.23"
 rstest_reuse = "0.7"
+
+[[bench]]
+name = "base56_bench1"
+harness = false
+
+[[bench]]
+name = "base58_bench1"
+harness = false
+
+[[bench]]
+name = "base32_bench1"
+harness = false
+
+[[bench]]
+name = "base64_bench1"
+harness = false
