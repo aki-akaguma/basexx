@@ -48,10 +48,11 @@ impl Base58 {
  *      A B C D E F G
  *                  +-- LSB
  *      +-------------- MSB
+ *      bigendian
 */
 fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
-    let zcount = a.iter().take_while(|&&x| x == 0).collect::<Vec<_>>().len();
+    let zcount = a.iter().take_while(|&&x| x == 0).count();
     let buf = {
         let buf_sz = (a.len() - zcount) * 138 / 100 + 1;
         let mut buf = vec![0u8; buf_sz];
@@ -85,18 +86,16 @@ fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
         r
     };
     // from binary to ascii
-    let rr = {
-        let rr: Result<Vec<u8>, EncodeError> = r
-            .iter()
-            .map(|&b| match ags.get(b) {
-                Some(ascii) => Ok(ascii),
-                None => Err(EncodeError::InvalidIndex(b)),
-            })
-            .collect();
-        match rr {
-            Ok(rr) => rr,
-            Err(err) => return Err(err),
-        }
+    let rr = match r
+        .iter()
+        .map(|&b| match ags.get(b) {
+            Some(ascii) => Ok(ascii),
+            None => Err(EncodeError::InvalidIndex(b)),
+        })
+        .collect::<Result<Vec<u8>, EncodeError>>()
+    {
+        Ok(rr) => rr,
+        Err(err) => return Err(err),
     };
     let s = String::from_utf8_lossy(&rr).to_string();
     assert!(s.len() == rr.len());
@@ -105,25 +104,20 @@ fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
 
 fn _decode_base58(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
-    let r = {
-        let r: Result<Vec<u8>, _> = a
-            .as_bytes()
-            .iter()
-            .map(|&b| {
-                if let Some(n) = ags.position(b) {
-                    Ok(n)
-                } else {
-                    Err(DecodeError::InvalidByte(b))
-                }
-            })
-            .collect();
-        match r {
-            Ok(r) => r,
-            Err(err) => return Err(err),
-        }
+    let r = match a
+        .as_bytes()
+        .iter()
+        .map(|&b| match ags.position(b) {
+            Some(n) => Ok(n),
+            None => Err(DecodeError::InvalidByte(b)),
+        })
+        .collect::<Result<Vec<u8>, _>>()
+    {
+        Ok(r) => r,
+        Err(err) => return Err(err),
     };
-    // encode binary
-    let zcount = r.iter().take_while(|&&x| x == 0).collect::<Vec<_>>().len();
+    // decode binary
+    let zcount = r.iter().take_while(|&&x| x == 0).count();
     let bytesleft: u8 = (r.len() % 4) as u8;
     let obuf = {
         let obuf_sz = (r.len() * 138 / 100 + 4 - 1) / 4;
@@ -175,7 +169,7 @@ fn _decode_base58(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
             push4(&mut rr, obuf[j], 4);
             j += 1;
         }
-        let zzcount = rr.iter().take_while(|&&x| x == 0).collect::<Vec<_>>().len();
+        let zzcount = rr.iter().take_while(|&&x| x == 0).count();
         rr[(zzcount - zcount)..].to_vec()
     };
     Ok(rrr)

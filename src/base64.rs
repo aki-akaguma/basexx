@@ -52,6 +52,7 @@ impl Base64 {
  *      result from 3 bytes to 4bytes
 */
 fn _encode_base64(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
+    // encode binary
     let mut r = Vec::new();
     let mut iter = a.chunks_exact(3);
     let mut nx = iter.next();
@@ -93,38 +94,38 @@ fn _encode_base64(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
         }
         _ => unreachable!(),
     }
-    let rr: Result<Vec<u8>, EncodeError> = r
+    // from binary to ascii
+    let rr = match r
         .iter()
         .map(|&b| match ags.get(b) {
             Some(ascii) => Ok(ascii),
             None => Err(EncodeError::InvalidIndex(b)),
         })
-        .collect();
-    let rrr = match rr {
-        Ok(rrr) => rrr,
+        .collect::<Result<Vec<u8>, EncodeError>>()
+    {
+        Ok(rr) => rr,
         Err(err) => return Err(err),
     };
-    let s = String::from_utf8_lossy(&rrr).to_string();
-    assert!(s.len() == rrr.len());
+    let s = String::from_utf8_lossy(&rr).to_string();
+    assert!(s.len() == rr.len());
     Ok(s)
 }
 
 fn _decode_base64(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
-    let r: Result<Vec<u8>, _> = a
+    // from ascii to binary
+    let r = match a
         .as_bytes()
         .iter()
-        .map(|&b| {
-            if let Some(n) = ags.position(b) {
-                Ok(n)
-            } else {
-                Err(DecodeError::InvalidByte(b))
-            }
+        .map(|&b| match ags.position(b) {
+            Some(n) => Ok(n),
+            None => Err(DecodeError::InvalidByte(b)),
         })
-        .collect();
-    let r = match r {
+        .collect::<Result<Vec<u8>, _>>()
+    {
         Ok(r) => r,
         Err(err) => return Err(err),
     };
+    // decode binary
     let mut rr = Vec::new();
     let mut iter = r.chunks_exact(4);
     let mut nx = iter.next();
