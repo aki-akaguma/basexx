@@ -1,23 +1,23 @@
 use super::*;
-use num_bigint::BigUint;
+use rug::Integer;
 
 /*
  * ref.)
- *     https://en.wikipedia.org/wiki/Base58
+ *     https://en.wikipedia.org/wiki/Base58R
 */
 
 #[derive(Debug)]
-pub struct Base58 {
+pub struct Base58R {
     ags: AsciiGraphicSet,
 }
 
-impl Default for Base58 {
+impl Default for Base58R {
     fn default() -> Self {
-        Base58::new()
+        Base58R::new()
     }
 }
 
-impl Base58 {
+impl Base58R {
     pub fn new() -> Self {
         Self::with_slice(&_CMAP58)
     }
@@ -35,7 +35,7 @@ impl Base58 {
     }
 }
 
-impl Base58 {
+impl Base58R {
     pub fn encode(&self, a: &[u8]) -> Result<String, EncodeError> {
         _encode_base58(&self.ags, a)
     }
@@ -45,7 +45,7 @@ impl Base58 {
 }
 
 /*
- * Base58 format:
+ * Base58R format:
  *      A B C D E F G
  *                  +-- LSB
  *      +-------------- MSB
@@ -55,17 +55,27 @@ fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
     // encode binary
     let zcount = a.iter().take_while(|&&x| x == 0).count();
     let r = {
-        let bigu = BigUint::from_bytes_be(a);
-        let mut r: Vec<u8> = bigu.to_radix_le(58);
-        if zcount > 0 {
-            r.resize(r.len() + zcount, 0u8);
+        let mut bigu = Integer::ZERO;
+        for &c in a.iter() {
+            //bigu *= 256u32;
+            //bigu += c;
+            bigu = bigu * 256u32 + c;
         }
-        r
+        let mut r: Vec<u8> = Vec::new();
+        let bigu_58 = Integer::from(58);
+        while bigu > Integer::ZERO {
+            let mut rem = bigu_58.clone();
+            bigu.div_rem_mut(&mut rem);
+            r.push(rem.to_u8().unwrap());
+        }
+        r.reverse();
+        let mut r0 = vec![0u8; zcount];
+        r0.extend_from_slice(&r);
+        r0
     };
     // from binary to ascii
     let rr = match r
         .iter()
-        .rev()
         .map(|&b| match ags.get(b) {
             Some(ascii) => Ok(ascii),
             None => Err(EncodeError::InvalidIndex(b)),
@@ -97,13 +107,22 @@ fn _decode_base58(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
     // decode binary
     let zcount = r.iter().take_while(|&&x| x == 0).count();
     let rr = {
-        let bigu = BigUint::from_radix_be(&r[zcount..], 58).unwrap();
-        let mut rr: Vec<u8> = bigu.to_radix_le(256);
-        if zcount > 0 {
-            rr.resize(rr.len() + zcount, 0u8);
+        let mut bigu = Integer::ZERO;
+        for &c in r[zcount..].iter() {
+            bigu *= 58u8;
+            bigu += c;
+        }
+        let mut rr: Vec<u8> = Vec::new();
+        let bigu_256 = Integer::from(256);
+        while bigu > Integer::ZERO {
+            let mut rem = bigu_256.clone();
+            bigu.div_rem_mut(&mut rem);
+            rr.push(rem.to_u8().unwrap());
         }
         rr.reverse();
-        rr
+        let mut r0 = vec![0u8; zcount];
+        r0.extend_from_slice(&rr);
+        r0
     };
     Ok(rr)
 }

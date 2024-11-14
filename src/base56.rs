@@ -1,7 +1,5 @@
 use super::*;
-use num_bigint::{BigUint, ToBigUint};
-use num_integer::Integer;
-use num_traits::cast::ToPrimitive;
+use num_bigint::BigUint;
 
 /*
  * ref.)
@@ -57,26 +55,17 @@ fn _encode_base56(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
     // encode binary
     let zcount = a.iter().take_while(|&&x| x == 0).count();
     let r = {
-        let mut bigu = BigUint::ZERO;
-        for &c in a.iter() {
-            bigu *= 256u32;
-            bigu += c;
+        let bigu = BigUint::from_bytes_be(a);
+        let mut r: Vec<u8> = bigu.to_radix_le(56);
+        if zcount > 0 {
+            r.resize(r.len() + zcount, 0u8);
         }
-        let mut r: Vec<u8> = Vec::new();
-        let bigu_56 = 56.to_biguint().unwrap();
-        while bigu > BigUint::ZERO {
-            let (div, rem) = bigu.div_rem(&bigu_56);
-            bigu = div;
-            r.push(rem.to_u8().unwrap());
-        }
-        r.reverse();
-        let mut r0 = vec![0u8; zcount];
-        r0.extend_from_slice(&r);
-        r0
+        r
     };
     // from binary to ascii
     let rr = match r
         .iter()
+        .rev()
         .map(|&b| match ags.get(b) {
             Some(ascii) => Ok(ascii),
             None => Err(EncodeError::InvalidIndex(b)),
@@ -108,22 +97,13 @@ fn _decode_base56(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
     // decode binary
     let zcount = r.iter().take_while(|&&x| x == 0).count();
     let rr = {
-        let mut bigu = BigUint::ZERO;
-        for &c in r[zcount..].iter() {
-            bigu *= 56u8;
-            bigu += c;
-        }
-        let mut rr: Vec<u8> = Vec::new();
-        let bigu_256 = 256.to_biguint().unwrap();
-        while bigu > BigUint::ZERO {
-            let (div, rem) = bigu.div_rem(&bigu_256);
-            bigu = div;
-            rr.push(rem.to_u8().unwrap());
+        let bigu = BigUint::from_radix_be(&r[zcount..], 56).unwrap();
+        let mut rr: Vec<u8> = bigu.to_radix_le(256);
+        if zcount > 0 {
+            rr.resize(rr.len() + zcount, 0u8);
         }
         rr.reverse();
-        let mut r0 = vec![0u8; zcount];
-        r0.extend_from_slice(&rr);
-        r0
+        rr
     };
     Ok(rr)
 }
