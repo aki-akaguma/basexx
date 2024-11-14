@@ -1,5 +1,4 @@
 use super::*;
-use num_bigint::BigUint;
 
 /*
  * ref.)
@@ -7,17 +6,17 @@ use num_bigint::BigUint;
 */
 
 #[derive(Debug)]
-pub struct Base58 {
+pub struct Base58B {
     ags: AsciiGraphicSet,
 }
 
-impl Default for Base58 {
+impl Default for Base58B {
     fn default() -> Self {
-        Base58::new()
+        Base58B::new()
     }
 }
 
-impl Base58 {
+impl Base58B {
     pub fn new() -> Self {
         Self::with_slice(&_CMAP58)
     }
@@ -35,7 +34,7 @@ impl Base58 {
     }
 }
 
-impl Base58 {
+impl Base58B {
     pub fn encode(&self, a: &[u8]) -> Result<String, EncodeError> {
         _encode_base58(&self.ags, a)
     }
@@ -54,18 +53,41 @@ impl Base58 {
 fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
     let zcount = a.iter().take_while(|&&x| x == 0).count();
-    let r = {
-        let bigu = BigUint::from_bytes_be(a);
-        let mut r: Vec<u8> = bigu.to_radix_le(58);
-        if zcount > 0 {
-            r.resize(r.len() + zcount, 0u8);
+    let buf = {
+        let buf_sz = (a.len() - zcount) * 138 / 100 + 1;
+        let mut buf = vec![0u8; buf_sz];
+        let mut high = buf_sz - 1;
+        for &c in a[zcount..].iter() {
+            let mut carry = c as u32;
+            high = {
+                let mut j = buf_sz - 1;
+                while j > high || carry != 0 {
+                    carry += 256 * buf[j] as u32;
+                    buf[j] = (carry % 58) as u8;
+                    if j == 0 {
+                        break;
+                    }
+                    carry = carry.wrapping_div(58);
+                    j -= 1;
+                }
+                j
+            };
         }
+        buf
+    };
+    let r = {
+        let st = buf
+            .iter()
+            .take_while(|&&x| x == 0)
+            .collect::<Vec<_>>()
+            .len();
+        let mut r = vec![0u8; zcount];
+        r.extend_from_slice(&buf[st..]);
         r
     };
     // from binary to ascii
     let rr = match r
         .iter()
-        .rev()
         .map(|&b| match ags.get(b) {
             Some(ascii) => Ok(ascii),
             None => Err(EncodeError::InvalidIndex(b)),
@@ -96,16 +118,61 @@ fn _decode_base58(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
     };
     // decode binary
     let zcount = r.iter().take_while(|&&x| x == 0).count();
-    let rr = {
-        let bigu = BigUint::from_radix_be(&r[zcount..], 58).unwrap();
-        let mut rr: Vec<u8> = bigu.to_radix_le(256);
-        if zcount > 0 {
-            rr.resize(rr.len() + zcount, 0u8);
+    let bytesleft: u8 = (r.len() % 4) as u8;
+    let obuf = {
+        let obuf_sz = (r.len() * 138 / 100 + 4 - 1) / 4;
+        let mut obuf = vec![0_u32; obuf_sz];
+        let (mut j, mut t, mut c): (_, u64, u32);
+        let zero_mask: u32 = if bytesleft != 0 {
+            0xFFFF_FFFF << (bytesleft * 8)
+        } else {
+            0
+        };
+        for &a in r[zcount..].iter() {
+            c = a.into();
+            j = obuf_sz - 1;
+            while j != 0 {
+                t = obuf[j] as u64 * 58u64 + c as u64;
+                c = (t >> 32) as u32;
+                obuf[j] = (t & 0xFFFF_FFFF) as u32;
+                j -= 1;
+            }
+            if c != 0 {
+                return Err(DecodeError::OutputNumberTooBig(
+                    c,
+                    "carry to the next i32".to_string(),
+                ));
+            }
+            if (obuf[0] & zero_mask) != 0 {
+                return Err(DecodeError::OutputNumberTooBig(
+                    obuf[0] & zero_mask,
+                    "last i32 filled too far".to_string(),
+                ));
+            }
         }
-        rr.reverse();
-        rr
+        obuf
     };
-    Ok(rr)
+    let rrr = {
+        let mut rr: Vec<u8> = Vec::new();
+        let push4 = |rr: &mut Vec<u8>, v, mut i| {
+            while i > 0 {
+                rr.push(((v >> (8 * (i - 1))) & 0xFF) as u8);
+                i -= 1;
+            }
+        };
+        let mut j = 0;
+        if bytesleft != 0 {
+            push4(&mut rr, obuf[j], bytesleft);
+            j += 1;
+        }
+        while j < obuf.len() {
+            push4(&mut rr, obuf[j], 4);
+            j += 1;
+        }
+        let zzcount = rr.iter().take_while(|&&x| x == 0).count();
+        rr[(zzcount - zcount)..].to_vec()
+    };
+    Ok(rrr)
 }
 
 // exclusive ascii: b'0' numeric zero, b'I' large ai, b'O' large o, b'l' small el
