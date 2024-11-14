@@ -3,11 +3,15 @@ name = "basexx"
 version = "0.1.0"
 edition = "2021"
 
+[features]
+defaults = []
+rug = ["dep:rug"]
+
 [dependencies]
 num-bigint = "0.4"
 num-integer = "0.1"
 num-traits = "0.2"
-rug = "1.26"
+rug = { version="1.26", optional=true }
 
 [dev-dependencies]
 criterion = "0.5"
@@ -25,13 +29,13 @@ harness = false
 name = "base58_bench1"
 harness = false
 
-[[bench]]
-name = "base58_b_bench1"
-harness = false
-
-[[bench]]
-name = "base58_r_bench1"
-harness = false
+#[[bench]]
+#name = "base58_b_bench1"
+#harness = false
+#
+#[[bench]]
+#name = "base58_r_bench1"
+#harness = false
 
 [[bench]]
 name = "base32_bench1"
