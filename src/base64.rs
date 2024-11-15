@@ -179,6 +179,16 @@ mod tests {
     use super::*;
 
     #[test]
+    fn it_works_0() {
+        let inp = [0u8, 0, 1, 1].to_vec();
+        let oup = "AAABAQ".to_string();
+        let ags = AsciiGraphicSet::with_slice(&_CMAP64);
+        let r1 = _encode_base64(&ags, &inp).unwrap();
+        assert_eq!(r1, oup);
+        let r2 = _decode_base64(&ags, &r1).unwrap();
+        assert_eq!(r2, inp);
+    }
+    #[test]
     fn it_works_1() {
         let inp = b"ABCDEFGHIJKL".to_vec();
         let oup = "QUJDREVGR0hJSktM".to_string();
