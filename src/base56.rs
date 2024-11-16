@@ -55,7 +55,7 @@ fn _encode_base56(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
     // encode binary
     let zcount = a.iter().take_while(|&&x| x == 0).count();
     let r = {
-        let bigu = BigUint::from_bytes_be(a);
+        let bigu = BigUint::from_bytes_be(&a[zcount..]);
         let mut r: Vec<u8> = bigu.to_radix_le(56);
         if zcount > 0 {
             r.resize(r.len() + zcount, 0u8);

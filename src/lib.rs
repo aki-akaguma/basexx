@@ -2,6 +2,7 @@ mod ascii_graphic_set;
 use ascii_graphic_set::*;
 
 mod base32;
+mod base32_i;
 mod base64;
 
 mod base56;
@@ -9,6 +10,7 @@ mod base58;
 mod base58_b;
 
 pub use base32::*;
+pub use base32_i::*;
 pub use base64::*;
 
 pub use base56::*;

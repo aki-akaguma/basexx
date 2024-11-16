@@ -9,8 +9,6 @@ rug = ["dep:rug"]
 
 [dependencies]
 num-bigint = "0.4"
-num-integer = "0.1"
-num-traits = "0.2"
 rug = { version="1.26", optional=true }
 
 [dev-dependencies]
@@ -18,8 +16,9 @@ criterion = "0.5"
 rstest = "0.23"
 rstest_reuse = "0.7"
 
-#[profile.bench]
+[profile.bench]
 #lto=true
+debug = true
 
 [[bench]]
 name = "base56_bench1"
@@ -40,6 +39,10 @@ harness = false
 [[bench]]
 name = "base32_bench1"
 harness = false
+
+#[[bench]]
+#name = "base32_i_bench1"
+#harness = false
 
 [[bench]]
 name = "base64_bench1"
