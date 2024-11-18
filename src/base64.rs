@@ -52,8 +52,10 @@ impl Base64 {
  *      result from 3 bytes to 4bytes
 */
 fn _encode_base64(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
+    let rsz = 1 + ((a.len() + 2) / 3) * 4;
     // encode binary
-    let mut r = Vec::new();
+    let mut r = vec![0u8; rsz];
+    let mut r_idx = 0;
     let mut iter = a.chunks_exact(3);
     let mut nx = iter.next();
     while let Some(aa) = nx {
@@ -64,10 +66,11 @@ fn _encode_base64(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
         let v1 = (b0 & 0b11) << 4 | (b1 >> 4);
         let v2 = (b1 & 0b1111) << 2 | (b2 >> 6);
         let v3 = b2 & 0b111111;
-        r.push(v0);
-        r.push(v1);
-        r.push(v2);
-        r.push(v3);
+        r[r_idx] = v0;
+        r[r_idx + 1] = v1;
+        r[r_idx + 2] = v2;
+        r[r_idx + 3] = v3;
+        r_idx += 4;
         nx = iter.next();
     }
     let aa = iter.remainder();
@@ -78,8 +81,9 @@ fn _encode_base64(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
             let b1 = 0;
             let v0 = b0 >> 2;
             let v1 = (b0 & 0b11) << 4 | (b1 >> 4);
-            r.push(v0);
-            r.push(v1);
+            r[r_idx] = v0;
+            r[r_idx + 1] = v1;
+            r_idx += 2;
         }
         2 => {
             let b0 = aa[0];
@@ -88,45 +92,40 @@ fn _encode_base64(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
             let v0 = b0 >> 2;
             let v1 = (b0 & 0b11) << 4 | (b1 >> 4);
             let v2 = (b1 & 0b1111) << 2 | (b2 >> 6);
-            r.push(v0);
-            r.push(v1);
-            r.push(v2);
+            r[r_idx] = v0;
+            r[r_idx + 1] = v1;
+            r[r_idx + 2] = v2;
+            r_idx += 3;
         }
         _ => unreachable!(),
     }
+    r.resize(r_idx, 0u8);
     // from binary to ascii
-    let rr = match r
-        .iter()
-        .map(|&b| match ags.get(b) {
-            Some(ascii) => Ok(ascii),
-            None => Err(EncodeError::InvalidIndex(b)),
-        })
-        .collect::<Result<Vec<u8>, EncodeError>>()
-    {
-        Ok(rr) => rr,
-        Err(err) => return Err(err),
-    };
-    let s = String::from_utf8_lossy(&rr).to_string();
-    assert!(s.len() == rr.len());
+    for c in &mut r {
+        *c = match ags.get(*c) {
+            Some(ascii) => ascii,
+            None => return Err(EncodeError::InvalidIndex(*c)),
+        };
+    }
+    let s = String::from_utf8_lossy(&r).to_string();
+    assert!(s.len() == r.len());
     Ok(s)
 }
 
 fn _decode_base64(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
-    let r = match a
-        .as_bytes()
-        .iter()
-        .map(|&b| match ags.position(b) {
-            Some(n) => Ok(n),
-            None => Err(DecodeError::InvalidByte(b)),
-        })
-        .collect::<Result<Vec<u8>, _>>()
-    {
-        Ok(r) => r,
-        Err(err) => return Err(err),
-    };
+    let mut r = a.as_bytes().to_vec();
+    for c in &mut r {
+        *c = match ags.position(*c) {
+            Some(ascii) => ascii,
+            None => return Err(DecodeError::InvalidByte(*c)),
+        };
+    }
     // decode binary
-    let mut rr = Vec::new();
+    let rsz = (r.len() / 4) * 3 + 2;
+    //let mut rr = Vec::new();
+    let mut rr = vec![0u8; rsz];
+    let mut r_idx = 0;
     let mut iter = r.chunks_exact(4);
     let mut nx = iter.next();
     while let Some(aa) = nx {
@@ -137,9 +136,10 @@ fn _decode_base64(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
         let v0 = (c0 << 2) | (c1 >> 4);
         let v1 = (c1 << 4) | (c2 >> 2);
         let v2 = (c2 << 6) | c3;
-        rr.push(v0);
-        rr.push(v1);
-        rr.push(v2);
+        rr[r_idx] = v0;
+        rr[r_idx + 1] = v1;
+        rr[r_idx + 2] = v2;
+        r_idx += 3;
         nx = iter.next();
     }
     let aa = iter.remainder();
@@ -150,7 +150,8 @@ fn _decode_base64(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
             let c1 = aa[1];
             let v0 = (c0 << 2) | (c1 >> 4);
             assert!(0b1111 & c1 == 0);
-            rr.push(v0);
+            rr[r_idx] = v0;
+            r_idx += 1;
         }
         3 => {
             let c0 = aa[0];
@@ -159,11 +160,13 @@ fn _decode_base64(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
             let v0 = (c0 << 2) | (c1 >> 4);
             let v1 = (c1 << 4) | (c2 >> 2);
             assert!(0b11 & c2 == 0);
-            rr.push(v0);
-            rr.push(v1);
+            rr[r_idx] = v0;
+            rr[r_idx + 1] = v1;
+            r_idx += 2;
         }
         _ => return Err(DecodeError::InvalidLength(a.len())),
     }
+    rr.resize(r_idx, 0u8);
     Ok(rr)
 }
 
