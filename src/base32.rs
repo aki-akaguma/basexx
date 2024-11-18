@@ -49,11 +49,13 @@ impl Base32 {
  *          Z         *          E         I          A
  *          01111_010 00_10101_0 0100_0101 0_10010_01 010_00001
  *          01111 010_00 10101 0_0100 0101_0 10010 01_010 00001
- *      result from 3 bytes to 4bytes
+ *      result from 5 bytes to 8bytes
 */
 fn _encode_base32(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
+    let rsz = 1 + ((a.len() + 4) / 5) * 8;
     // encode binary
-    let mut r = Vec::new();
+    let mut r = vec![0u8; rsz];
+    let mut r_idx = 0;
     let mut iter = a.chunks_exact(5);
     let mut nx = iter.next();
     while let Some(aa) = nx {
@@ -70,14 +72,15 @@ fn _encode_base32(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
         let v5 = (b3 & 0b1111100) >> 2;
         let v6 = (b3 & 0b11) << 3 | (b4 >> 5);
         let v7 = b4 & 0b11111;
-        r.push(v0);
-        r.push(v1);
-        r.push(v2);
-        r.push(v3);
-        r.push(v4);
-        r.push(v5);
-        r.push(v6);
-        r.push(v7);
+        r[r_idx] = v0;
+        r[r_idx + 1] = v1;
+        r[r_idx + 2] = v2;
+        r[r_idx + 3] = v3;
+        r[r_idx + 4] = v4;
+        r[r_idx + 5] = v5;
+        r[r_idx + 6] = v6;
+        r[r_idx + 7] = v7;
+        r_idx += 8;
         nx = iter.next();
     }
     let aa = iter.remainder();
@@ -88,8 +91,9 @@ fn _encode_base32(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
             let b1 = 0;
             let v0 = b0 >> 3;
             let v1 = (b0 & 0b111) << 2 | (b1 >> 6);
-            r.push(v0);
-            r.push(v1);
+            r[r_idx] = v0;
+            r[r_idx + 1] = v1;
+            r_idx += 2;
         }
         2 => {
             let b0 = aa[0];
@@ -99,10 +103,11 @@ fn _encode_base32(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
             let v1 = (b0 & 0b111) << 2 | (b1 >> 6);
             let v2 = (b1 & 0b111110) >> 1;
             let v3 = (b1 & 0b1) << 4 | (b2 >> 4);
-            r.push(v0);
-            r.push(v1);
-            r.push(v2);
-            r.push(v3);
+            r[r_idx] = v0;
+            r[r_idx + 1] = v1;
+            r[r_idx + 2] = v2;
+            r[r_idx + 3] = v3;
+            r_idx += 4;
         }
         3 => {
             let b0 = aa[0];
@@ -114,11 +119,12 @@ fn _encode_base32(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
             let v2 = (b1 & 0b111110) >> 1;
             let v3 = (b1 & 0b1) << 4 | (b2 >> 4);
             let v4 = (b2 & 0b1111) << 1 | (b3 >> 7);
-            r.push(v0);
-            r.push(v1);
-            r.push(v2);
-            r.push(v3);
-            r.push(v4);
+            r[r_idx] = v0;
+            r[r_idx + 1] = v1;
+            r[r_idx + 2] = v2;
+            r[r_idx + 3] = v3;
+            r[r_idx + 4] = v4;
+            r_idx += 5;
         }
         4 => {
             let b0 = aa[0];
@@ -133,49 +139,43 @@ fn _encode_base32(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
             let v4 = (b2 & 0b1111) << 1 | (b3 >> 7);
             let v5 = (b3 & 0b1111100) >> 2;
             let v6 = (b3 & 0b11) << 3 | (b4 >> 5);
-            r.push(v0);
-            r.push(v1);
-            r.push(v2);
-            r.push(v3);
-            r.push(v4);
-            r.push(v5);
-            r.push(v6);
+            r[r_idx] = v0;
+            r[r_idx + 1] = v1;
+            r[r_idx + 2] = v2;
+            r[r_idx + 3] = v3;
+            r[r_idx + 4] = v4;
+            r[r_idx + 5] = v5;
+            r[r_idx + 6] = v6;
+            r_idx += 7;
         }
         _ => unreachable!(),
     }
+    r.resize(r_idx, 0u8);
     // from binary to ascii
-    let rr = match r
-        .iter()
-        .map(|&b| match ags.get(b) {
-            Some(ascii) => Ok(ascii),
-            None => Err(EncodeError::InvalidIndex(b)),
-        })
-        .collect::<Result<Vec<u8>, EncodeError>>()
-    {
-        Ok(rr) => rr,
-        Err(err) => return Err(err),
-    };
-    let s = String::from_utf8_lossy(&rr).to_string();
-    assert!(s.len() == rr.len());
+    for c in &mut r {
+        *c = match ags.get(*c) {
+            Some(ascii) => ascii,
+            None => return Err(EncodeError::InvalidIndex(*c)),
+        };
+    }
+    let s = String::from_utf8_lossy(&r).to_string();
+    assert!(s.len() == r.len());
     Ok(s)
 }
 
 fn _decode_base32(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
-    let r = match a
-        .as_bytes()
-        .iter()
-        .map(|&b| match ags.position(b) {
-            Some(n) => Ok(n),
-            None => Err(DecodeError::InvalidByte(b)),
-        })
-        .collect::<Result<Vec<u8>, _>>()
-    {
-        Ok(r) => r,
-        Err(err) => return Err(err),
-    };
+    let mut r = a.as_bytes().to_vec();
+    for c in &mut r {
+        *c = match ags.position(*c) {
+            Some(ascii) => ascii,
+            None => return Err(DecodeError::InvalidByte(*c)),
+        };
+    }
     // decode binary
-    let mut rr = Vec::new();
+    let rsz = (r.len() / 8) * 5 + 4;
+    let mut rr = vec![0u8; rsz];
+    let mut r_idx = 0;
     let mut iter = r.chunks_exact(8);
     let mut nx = iter.next();
     while let Some(aa) = nx {
@@ -192,11 +192,12 @@ fn _decode_base32(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
         let v2 = (c3 << 4) | (c4 >> 1);
         let v3 = (c4 << 7) | (c5 << 2) | (c6 >> 3);
         let v4 = (c6 << 5) | c7;
-        rr.push(v0);
-        rr.push(v1);
-        rr.push(v2);
-        rr.push(v3);
-        rr.push(v4);
+        rr[r_idx] = v0;
+        rr[r_idx + 1] = v1;
+        rr[r_idx + 2] = v2;
+        rr[r_idx + 3] = v3;
+        rr[r_idx + 4] = v4;
+        r_idx += 5;
         nx = iter.next();
     }
     let aa = iter.remainder();
@@ -207,7 +208,8 @@ fn _decode_base32(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
             let c1 = aa[1];
             let v0 = (c0 << 3) | (c1 >> 2);
             assert!(0b11 & c1 == 0);
-            rr.push(v0);
+            rr[r_idx] = v0;
+            r_idx += 1;
         }
         4 => {
             let c0 = aa[0];
@@ -217,8 +219,9 @@ fn _decode_base32(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
             let v0 = (c0 << 3) | (c1 >> 2);
             let v1 = (c1 << 6) | (c2 << 1) | (c3 >> 4);
             assert!(0b1111 & c3 == 0);
-            rr.push(v0);
-            rr.push(v1);
+            rr[r_idx] = v0;
+            rr[r_idx + 1] = v1;
+            r_idx += 2;
         }
         5 => {
             let c0 = aa[0];
@@ -230,9 +233,10 @@ fn _decode_base32(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
             let v1 = (c1 << 6) | (c2 << 1) | (c3 >> 4);
             let v2 = (c3 << 4) | (c4 >> 1);
             assert!(0b1 & c4 == 0);
-            rr.push(v0);
-            rr.push(v1);
-            rr.push(v2);
+            rr[r_idx] = v0;
+            rr[r_idx + 1] = v1;
+            rr[r_idx + 2] = v2;
+            r_idx += 3;
         }
         7 => {
             let c0 = aa[0];
@@ -247,13 +251,15 @@ fn _decode_base32(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
             let v2 = (c3 << 4) | (c4 >> 1);
             let v3 = (c4 << 7) | (c5 << 2) | (c6 >> 3);
             assert!(0b111 & c6 == 0);
-            rr.push(v0);
-            rr.push(v1);
-            rr.push(v2);
-            rr.push(v3);
+            rr[r_idx] = v0;
+            rr[r_idx + 1] = v1;
+            rr[r_idx + 2] = v2;
+            rr[r_idx + 3] = v3;
+            r_idx += 4;
         }
         _ => return Err(DecodeError::InvalidLength(a.len())),
     }
+    rr.resize(r_idx, 0u8);
     Ok(rr)
 }
 
