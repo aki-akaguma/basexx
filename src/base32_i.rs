@@ -79,7 +79,7 @@ fn _encode_base32i(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
         r
     };
     // from binary to ascii
-    let rr = match (&r[aa_sz..])
+    let rr = match r[aa_sz..]
         .iter()
         .rev()
         .map(|&b| match ags.get(b) {
