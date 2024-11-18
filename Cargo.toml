@@ -47,3 +47,7 @@ harness = false
 [[bench]]
 name = "base64_bench1"
 harness = false
+
+[[bench]]
+name = "base64_g_bench1"
+harness = false

@@ -2,3 +2,7 @@
 https://qiita.com/pond-e/items/d7705fdcd12591f6eeb4
 https://github.com/bitcoin/libbase58/blob/master/base58.c
 https://en.wikipedia.org/wiki/Base36
+
+https://www5d.biglobe.ne.jp/~stssk/rfc/rfc4648j.html
+http://cvs.savannah.gnu.org/viewvc/gnulib/gnulib/lib/base64.c?view=markup&content-type=text%2Fvnd.viewcvs-markup&revision=HEAD
+
