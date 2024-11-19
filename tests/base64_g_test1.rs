@@ -43,6 +43,18 @@ fn test_base64_g_2() {
 #[case(b"0123456789", "MDEyMzQ1Njc4OQ==")]
 #[case(&[0u8, 1, 2, 3, 4, 5, 6, 7, 8, 9], "AAECAwQFBgcICQ==")]
 #[case(&[244u8, 245, 246, 247, 248, 249, 250, 251, 252, 253], "9PX29/j5+vv8/Q==")]
+//
+#[case(&[0u8, 1], "AAE=")]
+#[case(&[0u8,0, 1], "AAAB")]
+#[case(&[0u8,0,0, 1], "AAAAAQ==")]
+#[case(&[0u8,0,0,0, 1], "AAAAAAE=")]
+#[case(&[0u8,0,0,0,0, 1], "AAAAAAAB")]
+//
+#[case(&[0u8,0,0,0,0,0, 1], "AAAAAAAAAQ==")]
+#[case(&[0u8,0,0,0,0,0,0, 1], "AAAAAAAAAAE=")]
+#[case(&[0u8,0,0,0,0,0,0,0, 1], "AAAAAAAAAAAB")]
+#[case(&[0u8,0,0,0,0,0,0,0,0, 1], "AAAAAAAAAAAAAQ==")]
+#[case(&[0u8,0,0,0,0,0,0,0,0,0, 1], "AAAAAAAAAAAAAAE=")]
 fn two_simple_case_1(#[case] input: &[u8], #[case] output: &str) {}
 
 #[apply(two_simple_case_1)]

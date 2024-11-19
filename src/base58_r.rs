@@ -54,56 +54,41 @@ impl Base58R {
 fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
     let zcount = a.iter().take_while(|&&x| x == 0).count();
-    let r = {
-        let mut bigu = Integer::ZERO;
-        for &c in a.iter() {
-            //bigu *= 256u32;
-            //bigu += c;
-            bigu = bigu * 256u32 + c;
-        }
-        let mut r: Vec<u8> = Vec::new();
+    let mut r = {
+        let mut bigu = Integer::from_digits(a, rug::integer::Order::MsfBe);
+        let mut r: Vec<u8> = Vec::with_capacity(a.len() * 256 / 58);
         let bigu_58 = Integer::from(58);
         while bigu > Integer::ZERO {
             let mut rem = bigu_58.clone();
             bigu.div_rem_mut(&mut rem);
             r.push(rem.to_u8().unwrap());
         }
+        let r0 = vec![0u8; zcount];
+        r.extend_from_slice(&r0);
         r.reverse();
-        let mut r0 = vec![0u8; zcount];
-        r0.extend_from_slice(&r);
-        r0
+        r
     };
     // from binary to ascii
-    let rr = match r
-        .iter()
-        .map(|&b| match ags.get(b) {
-            Some(ascii) => Ok(ascii),
-            None => Err(EncodeError::InvalidIndex(b)),
-        })
-        .collect::<Result<Vec<u8>, EncodeError>>()
-    {
-        Ok(rr) => rr,
-        Err(err) => return Err(err),
-    };
-    let s = String::from_utf8_lossy(&rr).to_string();
-    assert!(s.len() == rr.len());
+    for c in &mut r {
+        *c = match ags.get(*c) {
+            Some(ascii) => ascii,
+            None => return Err(EncodeError::InvalidIndex(*c)),
+        };
+    }
+    let s = String::from_utf8_lossy(&r).to_string();
+    assert!(s.len() == r.len());
     Ok(s)
 }
 
 fn _decode_base58(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
-    let r = match a
-        .as_bytes()
-        .iter()
-        .map(|&b| match ags.position(b) {
-            Some(n) => Ok(n),
-            None => Err(DecodeError::InvalidByte(b)),
-        })
-        .collect::<Result<Vec<u8>, _>>()
-    {
-        Ok(r) => r,
-        Err(err) => return Err(err),
-    };
+    let mut r = a.as_bytes().to_vec();
+    for c in &mut r {
+        *c = match ags.position(*c) {
+            Some(ascii) => ascii,
+            None => return Err(DecodeError::InvalidByte(*c)),
+        };
+    }
     // decode binary
     let zcount = r.iter().take_while(|&&x| x == 0).count();
     let rr = {
@@ -112,17 +97,17 @@ fn _decode_base58(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
             bigu *= 58u8;
             bigu += c;
         }
-        let mut rr: Vec<u8> = Vec::new();
+        let mut rr: Vec<u8> = Vec::with_capacity(r.len());
         let bigu_256 = Integer::from(256);
         while bigu > Integer::ZERO {
             let mut rem = bigu_256.clone();
             bigu.div_rem_mut(&mut rem);
             rr.push(rem.to_u8().unwrap());
         }
+        let r0 = vec![0u8; zcount];
+        rr.extend_from_slice(&r0);
         rr.reverse();
-        let mut r0 = vec![0u8; zcount];
-        r0.extend_from_slice(&rr);
-        r0
+        rr
     };
     Ok(rr)
 }
