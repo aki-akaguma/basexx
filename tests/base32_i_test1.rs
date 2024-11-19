@@ -4,18 +4,18 @@ use rstest_reuse::{self, *};
 
 /*
 #[test]
-fn test_base32_1() {
+fn test_base32_i_1() {
     let inp = b"ABCDEFGHIJK".to_vec();
     let oup = "IFBEGRCFIZDUQSKKJM".to_string();
-    let base32 = Base32::default();
+    let base32 = Base32I::default();
     assert_eq!(base32.encode(&inp).unwrap(), oup);
 }
 
 #[test]
-fn test_base32_2() {
+fn test_base32_i_2() {
     let inp = b"ABCDEFGHIJK".to_vec();
     let oup = "IFBEGRCFIZDUQSKKJM".to_string();
-    let base32 = Base32::default();
+    let base32 = Base32I::default();
     let r1 = base32.encode(&inp).unwrap();
     assert_eq!(r1, oup);
     let r2 = base32.decode(&r1).unwrap();
@@ -58,17 +58,17 @@ fn test_base32_2() {
 fn two_simple_case_1(#[case] input: &[u8], #[case] output: &str) {}
 
 #[apply(two_simple_case_1)]
-fn base32_encode_test(#[case] input: &[u8], #[case] output: &str) {
+fn base32_i_encode_test(#[case] input: &[u8], #[case] output: &str) {
     let inp = input.to_vec();
     let oup = output.to_string();
-    let base32 = Base32::default();
+    let base32 = Base32I::default();
     assert_eq!(base32.encode(&inp).unwrap(), oup);
 }
 
 #[apply(two_simple_case_1)]
-fn base32_decode_test(#[case] output: &[u8], #[case] input: &str) {
+fn base32_i_decode_test(#[case] output: &[u8], #[case] input: &str) {
     let inp = input.to_string();
     let oup = output.to_vec();
-    let base32 = Base32::default();
+    let base32 = Base32I::default();
     assert_eq!(base32.decode(&inp).unwrap(), oup);
 }

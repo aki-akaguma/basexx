@@ -40,9 +40,9 @@ harness = false
 name = "base32_bench1"
 harness = false
 
-#[[bench]]
-#name = "base32_i_bench1"
-#harness = false
+[[bench]]
+name = "base32_i_bench1"
+harness = false
 
 [[bench]]
 name = "base64_bench1"
