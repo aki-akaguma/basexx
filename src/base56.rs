@@ -54,46 +54,36 @@ impl Base56 {
 fn _encode_base56(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
     let zcount = a.iter().take_while(|&&x| x == 0).count();
-    let r = {
+    let mut r = {
         let bigu = BigUint::from_bytes_be(&a[zcount..]);
         let mut r: Vec<u8> = bigu.to_radix_le(56);
         if zcount > 0 {
             r.resize(r.len() + zcount, 0u8);
         }
+        r.reverse();
         r
     };
     // from binary to ascii
-    let rr = match r
-        .iter()
-        .rev()
-        .map(|&b| match ags.get(b) {
-            Some(ascii) => Ok(ascii),
-            None => Err(EncodeError::InvalidIndex(b)),
-        })
-        .collect::<Result<Vec<u8>, EncodeError>>()
-    {
-        Ok(rr) => rr,
-        Err(err) => return Err(err),
-    };
-    let s = String::from_utf8_lossy(&rr).to_string();
-    assert!(s.len() == rr.len());
+    for c in &mut r {
+        *c = match ags.get(*c) {
+            Some(ascii) => ascii,
+            None => return Err(EncodeError::InvalidIndex(*c)),
+        };
+    }
+    let s = String::from_utf8_lossy(&r).to_string();
+    assert!(s.len() == r.len());
     Ok(s)
 }
 
 fn _decode_base56(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
-    let r = match a
-        .as_bytes()
-        .iter()
-        .map(|&b| match ags.position(b) {
-            Some(n) => Ok(n),
-            None => Err(DecodeError::InvalidByte(b)),
-        })
-        .collect::<Result<Vec<u8>, _>>()
-    {
-        Ok(r) => r,
-        Err(err) => return Err(err),
-    };
+    let mut r = a.as_bytes().to_vec();
+    for c in &mut r {
+        *c = match ags.position(*c) {
+            Some(ascii) => ascii,
+            None => return Err(DecodeError::InvalidByte(*c)),
+        };
+    }
     // decode binary
     let zcount = r.iter().take_while(|&&x| x == 0).count();
     let rr = {
