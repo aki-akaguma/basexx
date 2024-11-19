@@ -1,6 +1,5 @@
 #[cfg(feature = "rug")]
 use basexx::*;
-#[cfg(feature = "rug")]
 use criterion::*;
 
 #[cfg(feature = "rug")]
@@ -24,5 +23,10 @@ fn bench_base58_2(c: &mut Criterion) {
 #[cfg(feature = "rug")]
 criterion_group!(benches, bench_base58_1, bench_base58_2);
 
-#[cfg(feature = "rug")]
+#[cfg(not(feature = "rug"))]
+fn bench_dummy(_c: &mut Criterion) {}
+
+#[cfg(not(feature = "rug"))]
+criterion_group!(benches, bench_dummy);
+
 criterion_main!(benches);
