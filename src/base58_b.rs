@@ -3,6 +3,7 @@ use super::*;
 /*
  * ref.)
  *     https://en.wikipedia.org/wiki/Base58
+ *     https://github.com/bitcoin/libbase58/blob/master/base58.c
 */
 
 #[derive(Debug)]
@@ -131,10 +132,13 @@ fn _decode_base58(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError
         for &a in r[zcount..].iter() {
             c = a.into();
             j = obuf_sz - 1;
-            while j != 0 {
+            loop {
                 t = obuf[j] as u64 * 58u64 + c as u64;
                 c = (t >> 32) as u32;
                 obuf[j] = (t & 0xFFFF_FFFF) as u32;
+                if j == 0 {
+                    break;
+                }
                 j -= 1;
             }
             if c != 0 {

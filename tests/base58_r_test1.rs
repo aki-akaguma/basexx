@@ -1,20 +1,25 @@
+#[cfg(feature = "rug")]
 use basexx::*;
+#[cfg(feature = "rug")]
 use rstest::rstest;
+#[cfg(feature = "rug")]
 use rstest_reuse::{self, *};
 
+#[cfg(feature = "rug")]
 #[test]
-fn test_base58_1() {
+fn test_base58_r_1() {
     let inp = b"ABCDEFGHIJK".to_vec();
     let oup = "HBb7dQEaKrdXjkN".to_string();
-    let base58 = Base58::default();
+    let base58 = Base58R::default();
     assert_eq!(base58.encode(&inp).unwrap(), oup);
 }
 
+#[cfg(feature = "rug")]
 #[test]
-fn test_base58_2() {
+fn test_base58_r_2() {
     let inp = b"ABCDEFGHIJK".to_vec();
     let oup = "HBb7dQEaKrdXjkN".to_string();
-    let base58 = Base58::default();
+    let base58 = Base58R::default();
     let r1 = base58.encode(&inp).unwrap();
     assert_eq!(r1, oup);
     let r2 = base58.decode(&r1).unwrap();
@@ -23,6 +28,7 @@ fn test_base58_2() {
 /*
 */
 
+#[cfg(feature = "rug")]
 #[template]
 #[rstest]
 //
@@ -57,18 +63,20 @@ fn test_base58_2() {
 #[case(&[0u8,0,0,0,0,0,0,0,0,0, 1], "11111111112")]
 fn two_simple_case_1(#[case] input: &[u8], #[case] output: &str) {}
 
+#[cfg(feature = "rug")]
 #[apply(two_simple_case_1)]
-fn base58_encode_test(#[case] input: &[u8], #[case] output: &str) {
+fn base58_r_encode_test(#[case] input: &[u8], #[case] output: &str) {
     let inp = input.to_vec();
     let oup = output.to_string();
-    let base58 = Base58::default();
+    let base58 = Base58R::default();
     assert_eq!(base58.encode(&inp).unwrap(), oup);
 }
 
+#[cfg(feature = "rug")]
 #[apply(two_simple_case_1)]
-fn base58_decode_test(#[case] output: &[u8], #[case] input: &str) {
+fn base58_r_decode_test(#[case] output: &[u8], #[case] input: &str) {
     let inp = input.to_string();
     let oup = output.to_vec();
-    let base58 = Base58::default();
+    let base58 = Base58R::default();
     assert_eq!(base58.decode(&inp).unwrap(), oup);
 }
