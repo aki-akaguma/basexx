@@ -22,7 +22,7 @@ impl Base64G {
         Self::with_slice(&_CMAP64)
     }
     pub fn with_str(a: &str) -> Self {
-        assert_eq!(a.as_bytes().len(), 64);
+        assert_eq!(a.len(), 64);
         Self {
             ags: AsciiGraphicSet::with_str(a),
         }
