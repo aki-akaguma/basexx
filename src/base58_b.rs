@@ -22,7 +22,7 @@ impl Base58B {
         Self::with_slice(&_CMAP58)
     }
     pub fn with_str(a: &str) -> Self {
-        assert_eq!(a.as_bytes().len(), 58);
+        assert_eq!(a.len(), 58);
         Self {
             ags: AsciiGraphicSet::with_str(a),
         }
@@ -87,17 +87,13 @@ fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
         r
     };
     // from binary to ascii
-    let rr = match r
+    let rr = r
         .iter()
         .map(|&b| match ags.get(b) {
             Some(ascii) => Ok(ascii),
             None => Err(EncodeError::InvalidIndex(b)),
         })
-        .collect::<Result<Vec<u8>, EncodeError>>()
-    {
-        Ok(rr) => rr,
-        Err(err) => return Err(err),
-    };
+        .collect::<Result<Vec<u8>, EncodeError>>()?;
     let s = String::from_utf8_lossy(&rr).to_string();
     assert!(s.len() == rr.len());
     Ok(s)
@@ -105,23 +101,19 @@ fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
 
 fn _decode_base58(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
-    let r = match a
+    let r = a
         .as_bytes()
         .iter()
         .map(|&b| match ags.position(b) {
             Some(n) => Ok(n),
             None => Err(DecodeError::InvalidByte(b)),
         })
-        .collect::<Result<Vec<u8>, _>>()
-    {
-        Ok(r) => r,
-        Err(err) => return Err(err),
-    };
+        .collect::<Result<Vec<u8>, _>>()?;
     // decode binary
     let zcount = r.iter().take_while(|&&x| x == 0).count();
     let bytesleft: u8 = (r.len() % 4) as u8;
     let obuf = {
-        let obuf_sz = (r.len() * 138 / 100 + 4 - 1) / 4;
+        let obuf_sz = (r.len() * 138 / 100).div_ceil(4);
         let mut obuf = vec![0_u32; obuf_sz];
         let (mut j, mut t, mut c): (_, u64, u32);
         let zero_mask: u32 = if bytesleft != 0 {

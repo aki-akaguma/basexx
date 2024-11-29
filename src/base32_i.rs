@@ -22,7 +22,7 @@ impl Base32I {
         Self::with_slice(&_CMAP32)
     }
     pub fn with_str(a: &str) -> Self {
-        assert_eq!(a.as_bytes().len(), 32);
+        assert_eq!(a.len(), 32);
         Self {
             ags: AsciiGraphicSet::with_str(a),
         }
