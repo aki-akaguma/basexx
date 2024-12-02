@@ -51,6 +51,7 @@ impl Base64 {
  *          011110 10_0010 1010_01 000101
  *      result from 3 bytes to 4bytes
 */
+#[inline(never)]
 fn _encode_base64(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     let rsz = 1 + ((a.len() + 2) / 3) * 4;
     // encode binary
@@ -112,6 +113,7 @@ fn _encode_base64(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
     Ok(s)
 }
 
+#[inline(never)]
 fn _decode_base64(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
     let mut r = a.as_bytes().to_vec();
