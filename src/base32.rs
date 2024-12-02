@@ -51,6 +51,7 @@ impl Base32 {
  *          01111 010_00 10101 0_0100 0101_0 10010 01_010 00001
  *      result from 5 bytes to 8bytes
 */
+#[inline(never)]
 fn _encode_base32(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     let rsz = 1 + ((a.len() + 4) / 5) * 8;
     // encode binary
@@ -163,6 +164,7 @@ fn _encode_base32(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
     Ok(s)
 }
 
+#[inline(never)]
 fn _decode_base32(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
     let mut r = a.as_bytes().to_vec();
