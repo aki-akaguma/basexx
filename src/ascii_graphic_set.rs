@@ -10,6 +10,7 @@ pub enum AgsError {
     NotFound(u8),
 }
 */
+use super::*;
 
 #[derive(Debug)]
 pub struct AsciiGraphicSet {
@@ -59,7 +60,26 @@ impl AsciiGraphicSet {
             None => None,
         }
     }
+    #[inline]
     pub fn get(&self, index: u8) -> Option<u8> {
         self.binmap.get(index as usize).copied()
+    }
+    pub fn binary_to_ascii(&self, buf: &mut [u8]) -> Result<(), EncodeError> {
+        for c in buf {
+            *c = match self.get(*c) {
+                Some(ascii) => ascii,
+                None => return Err(EncodeError::InvalidIndex(*c)),
+            };
+        }
+        Ok(())
+    }
+    pub fn ascii_to_binary(&self, buf: &mut [u8]) -> Result<(), DecodeError> {
+        for c in buf {
+            *c = match self.position(*c) {
+                Some(ascii) => ascii,
+                None => return Err(DecodeError::InvalidByte(*c)),
+            };
+        }
+        Ok(())
     }
 }
