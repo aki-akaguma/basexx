@@ -2,6 +2,9 @@ use basexx::*;
 use rstest::rstest;
 use rstest_reuse::{self, *};
 
+mod utils;
+use utils::*;
+
 /*
 #[test]
 fn test_base32_1() {
@@ -22,6 +25,22 @@ fn test_base32_2() {
     assert_eq!(r2, inp);
 }
 */
+
+#[test]
+fn test_base32_file_t4_enc() {
+    let inp = read_file_data("fixtures/t4.data");
+    let oup = read_file_ascii("fixtures/t4.base32.ascii");
+    let base32 = Base32::default();
+    assert_eq!(base32.encode(&inp).unwrap(), oup);
+}
+
+#[test]
+fn test_base32_file_t4_dec() {
+    let inp = read_file_ascii("fixtures/t4.base32.ascii");
+    let oup = read_file_data("fixtures/t4.data");
+    let base32 = Base32::default();
+    assert_eq!(base32.decode(&inp).unwrap(), oup);
+}
 
 #[template]
 #[rstest]

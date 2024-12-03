@@ -2,6 +2,9 @@ use basexx::*;
 use rstest::rstest;
 use rstest_reuse::{self, *};
 
+mod utils;
+use utils::*;
+
 /*
 #[test]
 fn test_base64_1() {
@@ -22,6 +25,22 @@ fn test_base64_2() {
     assert_eq!(r2, inp);
 }
 */
+
+#[test]
+fn test_base64_file_t4_enc() {
+    let inp = read_file_data("fixtures/t4.data");
+    let oup = read_file_ascii("fixtures/t4.base64.ascii");
+    let base64 = Base64::default();
+    assert_eq!(base64.encode(&inp).unwrap(), oup);
+}
+
+#[test]
+fn test_base64_file_t4_dec() {
+    let inp = read_file_ascii("fixtures/t4.base64.ascii");
+    let oup = read_file_data("fixtures/t4.data");
+    let base64 = Base64::default();
+    assert_eq!(base64.decode(&inp).unwrap(), oup);
+}
 
 #[template]
 #[rstest]

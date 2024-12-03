@@ -1,5 +1,5 @@
 mod ascii_graphic_set;
-use ascii_graphic_set::*;
+pub use ascii_graphic_set::*;
 
 mod base32;
 mod base32_i;
