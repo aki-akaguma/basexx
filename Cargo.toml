@@ -21,6 +21,10 @@ rstest_reuse = "0.7"
 debug = true
 
 [[bench]]
+name = "ascii_bench1"
+harness = false
+
+[[bench]]
 name = "base56_bench1"
 harness = false
 

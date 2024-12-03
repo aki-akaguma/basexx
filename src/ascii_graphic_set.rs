@@ -49,16 +49,12 @@ impl AsciiGraphicSet {
     }
     pub fn position(&self, byte: u8) -> Option<u8> {
         //self.cmap.iter().position(|&x| x == byte).map(|idx| idx as u8)
-        match self.a128map.get(byte as usize) {
-            Some(&idx) => {
-                if idx < 0 {
-                    None
-                } else {
-                    Some(idx as u8)
-                }
+        if let Some(&idx) = self.a128map.get(byte as usize) {
+            if idx >= 0 {
+                return Some(idx as u8);
             }
-            None => None,
         }
+        None
     }
     #[inline]
     pub fn get(&self, index: u8) -> Option<u8> {
