@@ -17,8 +17,8 @@ rstest = "0.23"
 rstest_reuse = "0.7"
 
 [profile.bench]
-#lto=true
-debug = true
+lto=true
+#debug = true
 
 [[bench]]
 name = "ascii_bench1"
