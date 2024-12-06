@@ -5,53 +5,51 @@ edition = "2021"
 
 [features]
 defaults = []
+#
+# with libgmp
 rug = ["dep:rug"]
+#
+bench = []
+abench = ["bench"]
+ubench = ["bench"]
+nobench = []
 
 [dependencies]
 num-bigint = "0.4"
 rug = { version="1.26", optional=true }
 
 [dev-dependencies]
-criterion = "0.5"
+criterion = { version="0.5", default-features=false, features=["rayon"]}
 rstest = "0.23"
 rstest_reuse = "0.7"
 
 [profile.bench]
-lto=true
+#lto=true
 #debug = true
 
 [[bench]]
-name = "ascii_bench1"
+name = "lib_bench"
+path = "src/lib_bench.rs"
 harness = false
+required-features = ["ubench"]
 
 [[bench]]
 name = "base56_bench1"
 harness = false
+required-features = ["abench"]
 
 [[bench]]
 name = "base58_bench1"
 harness = false
-
-[[bench]]
-name = "base58_b_bench1"
-harness = false
-
-[[bench]]
-name = "base58_r_bench1"
-harness = false
+required-features = ["abench"]
 
 [[bench]]
 name = "base32_bench1"
 harness = false
-
-[[bench]]
-name = "base32_i_bench1"
-harness = false
+required-features = ["abench"]
 
 [[bench]]
 name = "base64_bench1"
 harness = false
+required-features = ["abench"]
 
-[[bench]]
-name = "base64_g_bench1"
-harness = false

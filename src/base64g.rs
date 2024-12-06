@@ -2,7 +2,7 @@ use super::*;
 
 /*
  * ref.)
- *     https://en.wikipedia.org/wiki/Base64G
+ *     https://en.wikipedia.org/wiki/Base64
  *     http://cvs.savannah.gnu.org/viewvc/gnulib/gnulib/lib/base64_g.c?view=markup&content-type=text%2Fvnd.viewcvs-markup&revision=HEAD
 */
 
@@ -37,10 +37,10 @@ impl Base64G {
 
 impl Base64G {
     pub fn encode(&self, a: &[u8]) -> Result<String, EncodeError> {
-        _encode_base64_g(&self.ags, a)
+        _encode_base64g(&self.ags, a)
     }
     pub fn decode(&self, a: &str) -> Result<Vec<u8>, DecodeError> {
-        _decode_base64_g(&self.ags, a)
+        _decode_base64g(&self.ags, a)
     }
 }
 
@@ -52,7 +52,7 @@ impl Base64G {
  *          011110 10_0010 1010_01 000101
  *      result from 3 bytes to 4bytes
 */
-fn _encode_base64_g(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
+fn _encode_base64g(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     let mut in_len = a.len();
     let mut out_len = 1 + ((in_len + 2) / 3) * 4;
     let mut out = vec![0u8; out_len];
@@ -126,7 +126,7 @@ fn _encode_base64_g(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErr
     Ok(s)
 }
 
-fn _decode_base64_g(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
+fn _decode_base64g(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     let ina: Vec<u8> = a.as_bytes().to_vec();
     let mut in_sz = ina.len();
     let out_sz = (in_sz / 4) * 3 + 2;
@@ -210,48 +210,11 @@ const _CMAP64: [u8; 64] = [
     b'w', b'x', b'y', b'z', b'0', b'1', b'2', b'3', b'4', b'5', b'6', b'7', b'8', b'9', b'+', b'/',
 ];
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[cfg(all(test, not(feature = "bench")))]
+mod tests;
 
-    #[test]
-    fn it_works_0() {
-        let inp = [0u8, 0, 1, 1].to_vec();
-        let oup = "AAABAQ==".to_string();
-        let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-        let r1 = _encode_base64_g(&ags, &inp).unwrap();
-        assert_eq!(r1, oup);
-        let r2 = _decode_base64_g(&ags, &r1).unwrap();
-        assert_eq!(r2, inp);
-    }
-    #[test]
-    fn it_works_1() {
-        let inp = b"ABCDEFGHIJKL".to_vec();
-        let oup = "QUJDREVGR0hJSktM".to_string();
-        let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-        let r1 = _encode_base64_g(&ags, &inp).unwrap();
-        assert_eq!(r1, oup);
-        let r2 = _decode_base64_g(&ags, &r1).unwrap();
-        assert_eq!(r2, inp);
-    }
-    #[test]
-    fn it_works_2() {
-        let inp = b"ABCDEFGHIJK".to_vec();
-        let oup = "QUJDREVGR0hJSks=".to_string();
-        let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-        let r1 = _encode_base64_g(&ags, &inp).unwrap();
-        assert_eq!(r1, oup);
-        let r2 = _decode_base64_g(&ags, &r1).unwrap();
-        assert_eq!(r2, inp);
-    }
-    #[test]
-    fn it_works_3() {
-        let inp = b"ABCDEFGHIJ".to_vec();
-        let oup = "QUJDREVGR0hJSg==".to_string();
-        let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-        let r1 = _encode_base64_g(&ags, &inp).unwrap();
-        assert_eq!(r1, oup);
-        let r2 = _decode_base64_g(&ags, &r1).unwrap();
-        assert_eq!(r2, inp);
-    }
-}
+#[cfg(all(test, feature = "ubench"))]
+mod benches;
+#[cfg(all(test, feature = "ubench"))]
+#[allow(unused_imports)]
+pub(crate) use benches::*;

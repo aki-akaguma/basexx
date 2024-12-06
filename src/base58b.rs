@@ -37,10 +37,10 @@ impl Base58B {
 
 impl Base58B {
     pub fn encode(&self, a: &[u8]) -> Result<String, EncodeError> {
-        _encode_base58(&self.ags, a)
+        _encode_base58b(&self.ags, a)
     }
     pub fn decode(&self, a: &str) -> Result<Vec<u8>, DecodeError> {
-        _decode_base58(&self.ags, a)
+        _decode_base58b(&self.ags, a)
     }
 }
 
@@ -51,7 +51,7 @@ impl Base58B {
  *      +-------------- MSB
  *      bigendian
 */
-fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
+fn _encode_base58b(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
     let zcount = a.iter().take_while(|&&x| x == 0).count();
     let buf = {
@@ -99,7 +99,7 @@ fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
     Ok(s)
 }
 
-fn _decode_base58(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
+fn _decode_base58b(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
     let r = a
         .as_bytes()
@@ -179,48 +179,11 @@ const _CMAP58: [u8; 58] = [
     b'q', b'r', b's', b't', b'u', b'v', b'w', b'x', b'y', b'z',
 ];
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+#[cfg(all(test, not(feature = "bench")))]
+mod tests;
 
-    #[test]
-    fn it_works_0() {
-        let inp = [0u8, 0, 1, 1].to_vec();
-        let oup = "115S".to_string();
-        let ags = AsciiGraphicSet::with_slice(&_CMAP58);
-        let r1 = _encode_base58(&ags, &inp).unwrap();
-        assert_eq!(r1, oup);
-        let r2 = _decode_base58(&ags, &r1).unwrap();
-        assert_eq!(r2, inp);
-    }
-    #[test]
-    fn it_works_1() {
-        let inp = b"ABCDEFGHIJKL".to_vec();
-        let oup = "2ERjaFfYv6E4EfgR1".to_string();
-        let ags = AsciiGraphicSet::with_slice(&_CMAP58);
-        let r1 = _encode_base58(&ags, &inp).unwrap();
-        assert_eq!(r1, oup);
-        let r2 = _decode_base58(&ags, &r1).unwrap();
-        assert_eq!(r2, inp);
-    }
-    #[test]
-    fn it_works_2() {
-        let inp = b"ABCDEFGHIJK".to_vec();
-        let oup = "HBb7dQEaKrdXjkN".to_string();
-        let ags = AsciiGraphicSet::with_slice(&_CMAP58);
-        let r1 = _encode_base58(&ags, &inp).unwrap();
-        assert_eq!(r1, oup);
-        let r2 = _decode_base58(&ags, &r1).unwrap();
-        assert_eq!(r2, inp);
-    }
-    #[test]
-    fn it_works_3() {
-        let inp = b"ABCDEFGHIJ".to_vec();
-        let oup = "4fedr2e4UP7vBb".to_string();
-        let ags = AsciiGraphicSet::with_slice(&_CMAP58);
-        let r1 = _encode_base58(&ags, &inp).unwrap();
-        assert_eq!(r1, oup);
-        let r2 = _decode_base58(&ags, &r1).unwrap();
-        assert_eq!(r2, inp);
-    }
-}
+#[cfg(all(test, feature = "ubench"))]
+mod benches;
+#[cfg(all(test, feature = "ubench"))]
+#[allow(unused_imports)]
+pub(crate) use benches::*;

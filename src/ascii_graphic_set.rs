@@ -13,7 +13,7 @@ pub enum AgsError {
 use super::*;
 
 #[derive(Debug)]
-pub struct AsciiGraphicSet {
+pub(crate) struct AsciiGraphicSet {
     // binary to ascii map
     binmap: Vec<u8>,
     // ascii to binary map
@@ -79,3 +79,12 @@ impl AsciiGraphicSet {
         Ok(())
     }
 }
+
+#[cfg(all(test, not(feature = "bench")))]
+mod tests;
+
+#[cfg(all(test, feature = "ubench"))]
+mod benches;
+#[cfg(all(test, feature = "ubench"))]
+#[allow(unused_imports)]
+pub(crate) use benches::*;
