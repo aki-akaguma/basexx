@@ -1,27 +1,51 @@
-use basexx::*;
-use rstest::rstest;
-use rstest_reuse::{self, *};
+#[allow(unused_imports)]
+use super::super::*;
+#[allow(unused_imports)]
+use super::*;
 
 #[test]
-fn test_base58_b_1() {
-    let inp = b"ABCDEFGHIJK".to_vec();
-    let oup = "HBb7dQEaKrdXjkN".to_string();
-    let base58 = Base58B::default();
-    assert_eq!(base58.encode(&inp).unwrap(), oup);
-}
-
-#[test]
-fn test_base58_b_2() {
-    let inp = b"ABCDEFGHIJK".to_vec();
-    let oup = "HBb7dQEaKrdXjkN".to_string();
-    let base58 = Base58B::default();
-    let r1 = base58.encode(&inp).unwrap();
+fn it_works_0() {
+    let inp = [0u8, 0, 1, 1].to_vec();
+    let oup = "115S".to_string();
+    let ags = AsciiGraphicSet::with_slice(&_CMAP58);
+    let r1 = _encode_base58b(&ags, &inp).unwrap();
     assert_eq!(r1, oup);
-    let r2 = base58.decode(&r1).unwrap();
+    let r2 = _decode_base58b(&ags, &r1).unwrap();
     assert_eq!(r2, inp);
 }
-/*
-*/
+#[test]
+fn it_works_1() {
+    let inp = b"ABCDEFGHIJKL".to_vec();
+    let oup = "2ERjaFfYv6E4EfgR1".to_string();
+    let ags = AsciiGraphicSet::with_slice(&_CMAP58);
+    let r1 = _encode_base58b(&ags, &inp).unwrap();
+    assert_eq!(r1, oup);
+    let r2 = _decode_base58b(&ags, &r1).unwrap();
+    assert_eq!(r2, inp);
+}
+#[test]
+fn it_works_2() {
+    let inp = b"ABCDEFGHIJK".to_vec();
+    let oup = "HBb7dQEaKrdXjkN".to_string();
+    let ags = AsciiGraphicSet::with_slice(&_CMAP58);
+    let r1 = _encode_base58b(&ags, &inp).unwrap();
+    assert_eq!(r1, oup);
+    let r2 = _decode_base58b(&ags, &r1).unwrap();
+    assert_eq!(r2, inp);
+}
+#[test]
+fn it_works_3() {
+    let inp = b"ABCDEFGHIJ".to_vec();
+    let oup = "4fedr2e4UP7vBb".to_string();
+    let ags = AsciiGraphicSet::with_slice(&_CMAP58);
+    let r1 = _encode_base58b(&ags, &inp).unwrap();
+    assert_eq!(r1, oup);
+    let r2 = _decode_base58b(&ags, &r1).unwrap();
+    assert_eq!(r2, inp);
+}
+
+use rstest::rstest;
+use rstest_reuse::{self, *};
 
 #[template]
 #[rstest]
@@ -58,7 +82,7 @@ fn test_base58_b_2() {
 fn two_simple_case_1(#[case] input: &[u8], #[case] output: &str) {}
 
 #[apply(two_simple_case_1)]
-fn base58_b_encode_test(#[case] input: &[u8], #[case] output: &str) {
+fn base58b_encode_test(#[case] input: &[u8], #[case] output: &str) {
     let inp = input.to_vec();
     let oup = output.to_string();
     let base58 = Base58B::default();
@@ -66,7 +90,7 @@ fn base58_b_encode_test(#[case] input: &[u8], #[case] output: &str) {
 }
 
 #[apply(two_simple_case_1)]
-fn base58_b_decode_test(#[case] output: &[u8], #[case] input: &str) {
+fn base58b_decode_test(#[case] output: &[u8], #[case] input: &str) {
     let inp = input.to_string();
     let oup = output.to_vec();
     let base58 = Base58B::default();
