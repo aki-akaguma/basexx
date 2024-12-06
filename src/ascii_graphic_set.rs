@@ -30,9 +30,11 @@ impl Default for AsciiGraphicSet {
 
 impl AsciiGraphicSet {
     #[allow(dead_code)]
+    #[inline]
     pub fn with_str(a: &str) -> Self {
         Self::with_slice(a.as_bytes())
     }
+    #[allow(dead_code)]
     pub fn with_slice(a: &[u8]) -> Self {
         assert!(a.len() <= u8::MAX as usize);
         assert_eq!(a.iter().position(|&x| !x.is_ascii_graphic()), None);
@@ -44,9 +46,11 @@ impl AsciiGraphicSet {
         Self { binmap, a128map }
     }
     #[allow(dead_code)]
+    #[inline]
     pub fn len(&self) -> usize {
         self.binmap.len()
     }
+    #[inline]
     pub fn position(&self, byte: u8) -> Option<u8> {
         //self.cmap.iter().position(|&x| x == byte).map(|idx| idx as u8)
         if let Some(&idx) = self.a128map.get(byte as usize) {
@@ -60,21 +64,31 @@ impl AsciiGraphicSet {
     pub fn get(&self, index: u8) -> Option<u8> {
         self.binmap.get(index as usize).copied()
     }
+    #[inline]
+    pub fn posq(&self, ascii: u8) -> Result<u8, DecodeError> {
+        match self.position(ascii) {
+            Some(binary) => Ok(binary),
+            None => Err(DecodeError::InvalidByte(ascii)),
+        }
+    }
+    #[inline]
+    pub fn getq(&self, binary: u8) -> Result<u8, EncodeError> {
+        match self.get(binary) {
+            Some(ascii) => Ok(ascii),
+            None => Err(EncodeError::InvalidIndex(binary)),
+        }
+    }
+    #[allow(dead_code)]
     pub fn binary_to_ascii(&self, buf: &mut [u8]) -> Result<(), EncodeError> {
         for c in buf {
-            *c = match self.get(*c) {
-                Some(ascii) => ascii,
-                None => return Err(EncodeError::InvalidIndex(*c)),
-            };
+            *c = self.getq(*c)?;
         }
         Ok(())
     }
+    #[allow(dead_code)]
     pub fn ascii_to_binary(&self, buf: &mut [u8]) -> Result<(), DecodeError> {
         for c in buf {
-            *c = match self.position(*c) {
-                Some(ascii) => ascii,
-                None => return Err(DecodeError::InvalidByte(*c)),
-            };
+            *c = self.posq(*c)?;
         }
         Ok(())
     }
