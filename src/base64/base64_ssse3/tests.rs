@@ -5,6 +5,9 @@ use super::*;
 
 #[test]
 fn it_works_0() {
+    if !is_x86_feature_detected!("ssse3") {
+        return;
+    }
     let inp = [0u8, 0, 1, 1].to_vec();
     let oup = "AAABAQ".to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
@@ -15,6 +18,9 @@ fn it_works_0() {
 }
 #[test]
 fn it_works_1() {
+    if !is_x86_feature_detected!("ssse3") {
+        return;
+    }
     let inp = b"ABCDEFGHIJKL".to_vec();
     let oup = "QUJDREVGR0hJSktM".to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
@@ -25,6 +31,9 @@ fn it_works_1() {
 }
 #[test]
 fn it_works_2() {
+    if !is_x86_feature_detected!("ssse3") {
+        return;
+    }
     let inp = b"ABCDEFGHIJK".to_vec();
     let oup = "QUJDREVGR0hJSks".to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
@@ -35,6 +44,9 @@ fn it_works_2() {
 }
 #[test]
 fn it_works_3() {
+    if !is_x86_feature_detected!("ssse3") {
+        return;
+    }
     let inp = b"ABCDEFGHIJ".to_vec();
     let oup = "QUJDREVGR0hJSg".to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
