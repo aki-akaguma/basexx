@@ -3,7 +3,7 @@ const AD64SZ: usize = 64;
 
 #[derive(Debug)]
 #[repr(align(64))]
-struct AlignedData64 {
+pub(crate) struct AlignedData64 {
     #[allow(unused)]
     data: [u8; AD64SZ],
 }
@@ -35,7 +35,7 @@ const AD128SZ: usize = 128;
 
 #[derive(Debug)]
 #[repr(align(128))]
-struct AlignedData128 {
+pub(crate) struct AlignedData128 {
     #[allow(unused)]
     data: [u8; AD128SZ],
 }
