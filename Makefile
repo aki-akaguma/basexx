@@ -6,6 +6,9 @@ all:
 clean:
 	cargo clean
 
+clippy:
+	cargo clippy
+
 test-build:
 	cargo test --no-run
 	sync

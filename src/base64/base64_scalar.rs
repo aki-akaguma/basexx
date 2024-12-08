@@ -171,7 +171,7 @@ pub(crate) fn _decode_base64_scalar(
     let inp = a.as_bytes();
     let oup_sz = (inp.len() / 4) * 3 + 2;
     let mut oup = vec![0u8; oup_sz];
-    let oup_idx = _decode_base64_scalar_chunks4(ags, &inp, &mut oup[0..])?;
+    let oup_idx = _decode_base64_scalar_chunks4(ags, inp, &mut oup[0..])?;
     oup.resize(oup_idx, 0u8);
     Ok(oup)
 }
@@ -211,7 +211,7 @@ pub(crate) fn _decode_base64_scalar_chunks4(
         }
         iter.remainder()
     };
-    let oo_idx = _decode_base64_scalar_rest(ags, &inp, &mut oup[oup_idx..])?;
+    let oo_idx = _decode_base64_scalar_rest(ags, inp, &mut oup[oup_idx..])?;
     Ok(oup_idx + oo_idx)
 }
 

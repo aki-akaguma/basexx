@@ -65,21 +65,21 @@ pub(crate) unsafe fn _encode_base64_ssse3_chunks12(
             //ags.binary_to_ascii(c16)?;
             c16[0] = ags.getq((cc16[0] & 0xFF) as u8)?;
             c16[1] = ags.getq(((cc16[0] >> 8) & 0xFF) as u8)?;
-            c16[2] = ags.getq(((cc16[0] >> 2 * 8) & 0xFF) as u8)?;
-            c16[3] = ags.getq(((cc16[0] >> 3 * 8) & 0xFF) as u8)?;
-            c16[4] = ags.getq(((cc16[0] >> 4 * 8) & 0xFF) as u8)?;
-            c16[5] = ags.getq(((cc16[0] >> 5 * 8) & 0xFF) as u8)?;
-            c16[6] = ags.getq(((cc16[0] >> 6 * 8) & 0xFF) as u8)?;
-            c16[7] = ags.getq(((cc16[0] >> 7 * 8) & 0xFF) as u8)?;
+            c16[2] = ags.getq(((cc16[0] >> (2 * 8)) & 0xFF) as u8)?;
+            c16[3] = ags.getq(((cc16[0] >> (3 * 8)) & 0xFF) as u8)?;
+            c16[4] = ags.getq(((cc16[0] >> (4 * 8)) & 0xFF) as u8)?;
+            c16[5] = ags.getq(((cc16[0] >> (5 * 8)) & 0xFF) as u8)?;
+            c16[6] = ags.getq(((cc16[0] >> (6 * 8)) & 0xFF) as u8)?;
+            c16[7] = ags.getq(((cc16[0] >> (7 * 8)) & 0xFF) as u8)?;
             //
             c16[8] = ags.getq(((cc16[1]) & 0xFF) as u8)?;
             c16[9] = ags.getq(((cc16[1] >> 8) & 0xFF) as u8)?;
-            c16[10] = ags.getq(((cc16[1] >> 2 * 8) & 0xFF) as u8)?;
-            c16[11] = ags.getq(((cc16[1] >> 3 * 8) & 0xFF) as u8)?;
-            c16[12] = ags.getq(((cc16[1] >> 4 * 8) & 0xFF) as u8)?;
-            c16[13] = ags.getq(((cc16[1] >> 5 * 8) & 0xFF) as u8)?;
-            c16[14] = ags.getq(((cc16[1] >> 6 * 8) & 0xFF) as u8)?;
-            c16[15] = ags.getq(((cc16[1] >> 7 * 8) & 0xFF) as u8)?;
+            c16[10] = ags.getq(((cc16[1] >> (2 * 8)) & 0xFF) as u8)?;
+            c16[11] = ags.getq(((cc16[1] >> (3 * 8)) & 0xFF) as u8)?;
+            c16[12] = ags.getq(((cc16[1] >> (4 * 8)) & 0xFF) as u8)?;
+            c16[13] = ags.getq(((cc16[1] >> (5 * 8)) & 0xFF) as u8)?;
+            c16[14] = ags.getq(((cc16[1] >> (6 * 8)) & 0xFF) as u8)?;
+            c16[15] = ags.getq(((cc16[1] >> (7 * 8)) & 0xFF) as u8)?;
         }
         oup_idx = unsafe { oup_ptr.offset_from(oup.as_ptr()) as usize };
         let new_inp_len = unsafe { end_ptr.offset_from(inp_ptr) as usize };
@@ -100,7 +100,7 @@ pub(crate) unsafe fn _decode_base64_ssse3(
     let inp = a.as_bytes();
     let oup_sz = (inp.len() / 4) * 3 + 2;
     let mut oup = vec![0u8; oup_sz];
-    let oup_idx = _decode_base64_ssse3_chunks16(ags, &inp, &mut oup[0..])?;
+    let oup_idx = _decode_base64_ssse3_chunks16(ags, inp, &mut oup[0..])?;
     oup.resize(oup_idx, 0u8);
     Ok(oup)
 }
