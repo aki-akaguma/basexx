@@ -58,7 +58,18 @@ impl Base64 {
         }
     }
     pub fn decode(&self, a: &str) -> Result<Vec<u8>, DecodeError> {
+        /*
         _decode_base64_scalar(&self.ags, a)
+        */
+        if cfg!(target_feature = "sse2") {
+            if is_x86_feature_detected!("ssse3") {
+                unsafe { _decode_base64_ssse3(&self.ags, a) }
+            } else {
+                _decode_base64_scalar(&self.ags, a)
+            }
+        } else {
+            _decode_base64_scalar(&self.ags, a)
+        }
     }
 }
 
