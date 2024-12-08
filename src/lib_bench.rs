@@ -1,3 +1,7 @@
+mod aligned_data;
+#[allow(unused_imports)]
+use aligned_data::*;
+
 mod ascii_graphic_set;
 use ascii_graphic_set::*;
 
