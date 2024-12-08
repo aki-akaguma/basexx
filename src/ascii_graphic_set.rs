@@ -15,9 +15,9 @@ use super::*;
 #[derive(Debug)]
 pub(crate) struct AsciiGraphicSet {
     // binary to ascii map
-    binmap: Vec<u8>,
+    binmap: Box<[u8]>,
     // ascii to binary map
-    a128map: Vec<i8>,
+    a128map: Box<[u8]>,
 }
 
 /*
@@ -36,12 +36,16 @@ impl AsciiGraphicSet {
     }
     #[allow(dead_code)]
     pub fn with_slice(a: &[u8]) -> Self {
-        assert!(a.len() <= u8::MAX as usize);
+        assert!(a.len() <= 64);
         assert_eq!(a.iter().position(|&x| !x.is_ascii_graphic()), None);
-        let binmap = a.to_vec();
-        let mut a128map: Vec<i8> = vec![-1; 128];
+        //let binmap = a.to_vec();
+        let mut binmap = AlignedData64::alloc(64);
+        binmap[0..a.len()].copy_from_slice(a);
+        //let mut a128map: Vec<i8> = vec![-1; 128];
+        let mut a128map = AlignedData128::alloc(128);
+        a128map.fill(0xFF);
         for (idx, &a) in binmap.iter().enumerate() {
-            a128map[a as usize] = idx as i8;
+            a128map[a as usize] = idx as u8;
         }
         Self { binmap, a128map }
     }
@@ -54,8 +58,8 @@ impl AsciiGraphicSet {
     pub fn position(&self, byte: u8) -> Option<u8> {
         //self.cmap.iter().position(|&x| x == byte).map(|idx| idx as u8)
         if let Some(&idx) = self.a128map.get(byte as usize) {
-            if idx >= 0 {
-                return Some(idx as u8);
+            if idx != 0xFF {
+                return Some(idx);
             }
         }
         None
@@ -66,17 +70,31 @@ impl AsciiGraphicSet {
     }
     #[inline]
     pub fn posq(&self, ascii: u8) -> Result<u8, DecodeError> {
+        /*
         match self.position(ascii) {
             Some(binary) => Ok(binary),
             None => Err(DecodeError::InvalidByte(ascii)),
         }
+        */
+        if let Some(&binary) = self.a128map.get(ascii as usize) {
+            if binary != 0xFF {
+                return Ok(binary);
+            }
+        }
+        Err(DecodeError::InvalidByte(ascii))
     }
     #[inline]
     pub fn getq(&self, binary: u8) -> Result<u8, EncodeError> {
+        /*
         match self.get(binary) {
             Some(ascii) => Ok(ascii),
             None => Err(EncodeError::InvalidIndex(binary)),
         }
+        */
+        if let Some(&ascii) = self.binmap.get(binary as usize) {
+            return Ok(ascii);
+        }
+        Err(EncodeError::InvalidIndex(binary))
     }
     #[allow(dead_code)]
     #[inline]
