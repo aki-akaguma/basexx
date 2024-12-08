@@ -16,8 +16,8 @@ pub(crate) fn _encode_base64_scalar(
     let mut oup = vec![0u8; oup_sz];
     let oup_idx = _encode_base64_scalar_chunks6(ags, inp, &mut oup[0..])?;
     oup.resize(oup_idx, 0u8);
-    let string = String::from_utf8_lossy(&oup).to_string();
-    assert!(string.len() == oup.len());
+    let string = unsafe { String::from_utf8_unchecked(oup) };
+    assert!(string.len() == oup_idx);
     Ok(string)
 }
 
@@ -168,7 +168,7 @@ pub(crate) fn _decode_base64_scalar(
     ags: &AsciiGraphicSet,
     a: &str,
 ) -> Result<Vec<u8>, DecodeError> {
-    let inp = a.as_bytes().to_vec();
+    let inp = a.as_bytes();
     let oup_sz = (inp.len() / 4) * 3 + 2;
     let mut oup = vec![0u8; oup_sz];
     let oup_idx = _decode_base64_scalar_chunks4(ags, &inp, &mut oup[0..])?;
