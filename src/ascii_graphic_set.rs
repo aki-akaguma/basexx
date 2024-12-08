@@ -79,14 +79,52 @@ impl AsciiGraphicSet {
         }
     }
     #[allow(dead_code)]
+    #[inline]
     pub fn binary_to_ascii(&self, buf: &mut [u8]) -> Result<(), EncodeError> {
+        let buf = if buf.len() < 8 {
+            buf
+        } else {
+            let mut iter = buf.chunks_exact_mut(8);
+            let mut nx = iter.next();
+            while let Some(bb) = nx {
+                bb[0] = self.getq(bb[0])?;
+                bb[1] = self.getq(bb[1])?;
+                bb[2] = self.getq(bb[2])?;
+                bb[3] = self.getq(bb[3])?;
+                bb[4] = self.getq(bb[4])?;
+                bb[5] = self.getq(bb[5])?;
+                bb[6] = self.getq(bb[6])?;
+                bb[7] = self.getq(bb[7])?;
+                nx = iter.next();
+            }
+            iter.into_remainder()
+        };
         for c in buf {
             *c = self.getq(*c)?;
         }
         Ok(())
     }
     #[allow(dead_code)]
+    #[inline]
     pub fn ascii_to_binary(&self, buf: &mut [u8]) -> Result<(), DecodeError> {
+        let buf = if buf.len() < 8 {
+            buf
+        } else {
+            let mut iter = buf.chunks_exact_mut(8);
+            let mut nx = iter.next();
+            while let Some(bb) = nx {
+                bb[0] = self.posq(bb[0])?;
+                bb[1] = self.posq(bb[1])?;
+                bb[2] = self.posq(bb[2])?;
+                bb[3] = self.posq(bb[3])?;
+                bb[4] = self.posq(bb[4])?;
+                bb[5] = self.posq(bb[5])?;
+                bb[6] = self.posq(bb[6])?;
+                bb[7] = self.posq(bb[7])?;
+                nx = iter.next();
+            }
+            iter.into_remainder()
+        };
         for c in buf {
             *c = self.posq(*c)?;
         }
