@@ -3,10 +3,10 @@ use super::*;
 mod base32_scalar;
 pub(crate) use base32_scalar::*;
 
-//#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-//mod base32_ssse3;
-//#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-//pub(crate) use base32_ssse3::*;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod base32_ssse3;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(crate) use base32_ssse3::*;
 
 /*
  * ref.)
@@ -44,10 +44,32 @@ impl Base32 {
 
 impl Base32 {
     pub fn encode(&self, a: &[u8]) -> Result<String, EncodeError> {
+        /*
         _encode_base32_scalar(&self.ags, a)
+        */
+        if cfg!(target_feature = "sse2") {
+            if is_x86_feature_detected!("ssse3") {
+                unsafe { _encode_base32_ssse3(&self.ags, a) }
+            } else {
+                _encode_base32_scalar(&self.ags, a)
+            }
+        } else {
+            _encode_base32_scalar(&self.ags, a)
+        }
     }
     pub fn decode(&self, a: &str) -> Result<Vec<u8>, DecodeError> {
+        /*
         _decode_base32_scalar(&self.ags, a)
+        */
+        if cfg!(target_feature = "sse2") {
+            if is_x86_feature_detected!("ssse3") {
+                unsafe { _decode_base32_ssse3(&self.ags, a) }
+            } else {
+                _decode_base32_scalar(&self.ags, a)
+            }
+        } else {
+            _decode_base32_scalar(&self.ags, a)
+        }
     }
 }
 
