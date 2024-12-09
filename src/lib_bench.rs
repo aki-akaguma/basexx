@@ -58,6 +58,8 @@ criterion_group!(
     base64::bench_base64_scalar_dec,
     base64::bench_base64_ssse3_enc,
     base64::bench_base64_ssse3_dec,
+    base32::bench_base32_scalar_enc,
+    base32::bench_base32_scalar_dec,
     base64g::bench_base64g_enc,
     base64g::bench_base64g_dec,
     base32i::bench_base32i_enc,
