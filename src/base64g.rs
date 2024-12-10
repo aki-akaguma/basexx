@@ -121,9 +121,10 @@ fn _encode_base64g(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
         o_idx += 4;
     }
     out.resize(o_idx, 0u8);
-    let s = String::from_utf8_lossy(&out).to_string();
-    assert!(s.len() == out.len());
-    Ok(s)
+    let out_sz = out.len();
+    let string = unsafe { String::from_utf8_unchecked(out) };
+    assert!(string.len() == out_sz);
+    Ok(string)
 }
 
 fn _decode_base64g(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {

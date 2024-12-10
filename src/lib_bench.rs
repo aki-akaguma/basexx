@@ -70,6 +70,21 @@ criterion_group!(
     base58b::bench_base58b_dec,
 );
 
+#[cfg(feature = "rug")]
+#[cfg(feature = "ubench")]
+#[cfg(test)]
+criterion_group!(
+    benches2,
+    base58r::bench_base58r_enc,
+    base58r::bench_base58r_dec,
+);
+
+#[cfg(not(feature = "rug"))]
 #[cfg(feature = "ubench")]
 #[cfg(test)]
 criterion_main!(benches);
+
+#[cfg(feature = "rug")]
+#[cfg(feature = "ubench")]
+#[cfg(test)]
+criterion_main!(benches, benches2);

@@ -5,6 +5,7 @@ edition = "2021"
 
 [features]
 defaults = []
+aligned_data = []
 #
 # with libgmp
 rug = ["dep:rug"]

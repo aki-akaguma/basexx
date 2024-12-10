@@ -53,8 +53,8 @@ impl Base58R {
 */
 fn _encode_base58r(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
-    let zcount = a.iter().take_while(|&&x| x == 0).count();
-    let mut r = {
+    let zero_count = a.iter().take_while(|&&x| x == 0).count();
+    let mut oup = {
         let mut bigu = Integer::from_digits(a, rug::integer::Order::MsfBe);
         let mut r: Vec<u8> = Vec::with_capacity(a.len() * 256 / 58);
         let bigu_58 = Integer::from(58);
@@ -63,48 +63,39 @@ fn _encode_base58r(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
             bigu.div_rem_mut(&mut rem);
             r.push(rem.to_u8().unwrap());
         }
-        let r0 = vec![0u8; zcount];
+        let r0 = vec![0u8; zero_count];
         r.extend_from_slice(&r0);
         r.reverse();
         r
     };
     // from binary to ascii
-    for c in &mut r {
-        *c = match ags.get(*c) {
-            Some(ascii) => ascii,
-            None => return Err(EncodeError::InvalidIndex(*c)),
-        };
-    }
-    let s = String::from_utf8_lossy(&r).to_string();
-    assert!(s.len() == r.len());
-    Ok(s)
+    ags.binary_to_ascii(&mut oup)?;
+    let oup_sz = oup.len();
+    let string = unsafe { String::from_utf8_unchecked(oup) };
+    assert!(string.len() == oup_sz);
+    Ok(string)
 }
 
 fn _decode_base58r(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
-    let mut r = a.as_bytes().to_vec();
-    for c in &mut r {
-        *c = match ags.position(*c) {
-            Some(ascii) => ascii,
-            None => return Err(DecodeError::InvalidByte(*c)),
-        };
-    }
+    let mut inp = a.as_bytes().to_vec();
+    ags.ascii_to_binary(&mut inp)?;
     // decode binary
-    let zcount = r.iter().take_while(|&&x| x == 0).count();
+    let zero_count = inp.iter().take_while(|&&x| x == 0).count();
     let rr = {
         let mut bigu = Integer::ZERO;
-        for &c in r[zcount..].iter() {
+        for &c in inp[zero_count..].iter() {
             bigu *= 58u8;
             bigu += c;
         }
-        let mut rr: Vec<u8> = Vec::with_capacity(r.len());
+        let mut rr: Vec<u8> = Vec::with_capacity(inp.len());
         let bigu_256 = Integer::from(256);
         while bigu > Integer::ZERO {
             let mut rem = bigu_256.clone();
             bigu.div_rem_mut(&mut rem);
             rr.push(rem.to_u8().unwrap());
         }
-        let r0 = vec![0u8; zcount];
+        let r0 = vec![0u8; zero_count];
         rr.extend_from_slice(&r0);
         rr.reverse();
         rr

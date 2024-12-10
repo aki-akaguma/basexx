@@ -53,18 +53,18 @@ impl Base58B {
 */
 fn _encode_base58b(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
-    let zcount = a.iter().take_while(|&&x| x == 0).count();
-    let buf = {
-        let buf_sz = (a.len() - zcount) * 138 / 100 + 1;
-        let mut buf = vec![0u8; buf_sz];
-        let mut high = buf_sz - 1;
-        for &c in a[zcount..].iter() {
+    let zero_count = a.iter().take_while(|&&x| x == 0).count();
+    let oup = {
+        let oup_sz = (a.len() - zero_count) * 138 / 100 + 1;
+        let mut oup = vec![0u8; oup_sz];
+        let mut high = oup_sz - 1;
+        for &c in a[zero_count..].iter() {
             let mut carry = c as u32;
             high = {
-                let mut j = buf_sz - 1;
+                let mut j = oup_sz - 1;
                 while j > high || carry != 0 {
-                    carry += 256 * buf[j] as u32;
-                    buf[j] = (carry % 58) as u8;
+                    carry += 256 * oup[j] as u32;
+                    oup[j] = (carry % 58) as u8;
                     if j == 0 {
                         break;
                     }
@@ -74,46 +74,36 @@ fn _encode_base58b(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
                 j
             };
         }
-        buf
+        oup
     };
-    let r = {
-        let st = buf
+    let mut oup = {
+        let st = oup
             .iter()
             .take_while(|&&x| x == 0)
             .collect::<Vec<_>>()
             .len();
-        let mut r = vec![0u8; zcount];
-        r.extend_from_slice(&buf[st..]);
+        let mut r = vec![0u8; zero_count];
+        r.extend_from_slice(&oup[st..]);
         r
     };
     // from binary to ascii
-    let rr = r
-        .iter()
-        .map(|&b| match ags.get(b) {
-            Some(ascii) => Ok(ascii),
-            None => Err(EncodeError::InvalidIndex(b)),
-        })
-        .collect::<Result<Vec<u8>, EncodeError>>()?;
-    let s = String::from_utf8_lossy(&rr).to_string();
-    assert!(s.len() == rr.len());
-    Ok(s)
+    ags.binary_to_ascii(&mut oup)?;
+    let oup_sz = oup.len();
+    let string = unsafe { String::from_utf8_unchecked(oup) };
+    assert!(string.len() == oup_sz);
+    Ok(string)
 }
 
 fn _decode_base58b(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
-    let r = a
-        .as_bytes()
-        .iter()
-        .map(|&b| match ags.position(b) {
-            Some(n) => Ok(n),
-            None => Err(DecodeError::InvalidByte(b)),
-        })
-        .collect::<Result<Vec<u8>, _>>()?;
+    let mut inp = a.as_bytes().to_vec();
+    // from ascii to binary
+    ags.ascii_to_binary(&mut inp)?;
     // decode binary
-    let zcount = r.iter().take_while(|&&x| x == 0).count();
-    let bytesleft: u8 = (r.len() % 4) as u8;
+    let zero_count = inp.iter().take_while(|&&x| x == 0).count();
+    let bytesleft: u8 = (inp.len() % 4) as u8;
     let obuf = {
-        let obuf_sz = (r.len() * 138 / 100).div_ceil(4);
+        let obuf_sz = (inp.len() * 138 / 100).div_ceil(4);
         let mut obuf = vec![0_u32; obuf_sz];
         let (mut j, mut t, mut c): (_, u64, u32);
         let zero_mask: u32 = if bytesleft != 0 {
@@ -121,7 +111,7 @@ fn _decode_base58b(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeErro
         } else {
             0
         };
-        for &a in r[zcount..].iter() {
+        for &a in inp[zero_count..].iter() {
             c = a.into();
             j = obuf_sz - 1;
             loop {
@@ -166,7 +156,7 @@ fn _decode_base58b(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeErro
             j += 1;
         }
         let zzcount = rr.iter().take_while(|&&x| x == 0).count();
-        rr[(zzcount - zcount)..].to_vec()
+        rr[(zzcount - zero_count)..].to_vec()
     };
     Ok(rrr)
 }
