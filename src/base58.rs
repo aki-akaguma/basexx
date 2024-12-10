@@ -53,49 +53,40 @@ impl Base58 {
 */
 fn _encode_base58(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
-    let zcount = a.iter().take_while(|&&x| x == 0).count();
-    let mut r = {
-        let bigu = BigUint::from_bytes_be(&a[zcount..]);
-        let mut r: Vec<u8> = bigu.to_radix_le(58);
-        if zcount > 0 {
-            r.resize(r.len() + zcount, 0u8);
+    let zero_count = a.iter().take_while(|&&x| x == 0).count();
+    let mut oup = {
+        let bigu = BigUint::from_bytes_be(&a[zero_count..]);
+        let mut oup: Vec<u8> = bigu.to_radix_le(58);
+        if zero_count > 0 {
+            oup.resize(oup.len() + zero_count, 0u8);
         }
-        r.reverse();
-        r
+        oup.reverse();
+        oup
     };
     // from binary to ascii
-    for c in &mut r {
-        *c = match ags.get(*c) {
-            Some(ascii) => ascii,
-            None => return Err(EncodeError::InvalidIndex(*c)),
-        };
-    }
-    let s = String::from_utf8_lossy(&r).to_string();
-    assert!(s.len() == r.len());
-    Ok(s)
+    ags.binary_to_ascii(&mut oup)?;
+    let oup_sz = oup.len();
+    let string = unsafe { String::from_utf8_unchecked(oup) };
+    assert!(string.len() == oup_sz);
+    Ok(string)
 }
 
 fn _decode_base58(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
-    let mut r = a.as_bytes().to_vec();
-    for c in &mut r {
-        *c = match ags.position(*c) {
-            Some(ascii) => ascii,
-            None => return Err(DecodeError::InvalidByte(*c)),
-        };
-    }
+    let mut inp = a.as_bytes().to_vec();
+    ags.ascii_to_binary(&mut inp)?;
     // decode binary
-    let zcount = r.iter().take_while(|&&x| x == 0).count();
-    let rr = {
-        let bigu = BigUint::from_radix_be(&r[zcount..], 58).unwrap();
-        let mut rr: Vec<u8> = bigu.to_radix_le(256);
-        if zcount > 0 {
-            rr.resize(rr.len() + zcount, 0u8);
+    let zero_count = inp.iter().take_while(|&&x| x == 0).count();
+    let oup = {
+        let bigu = BigUint::from_radix_be(&inp[zero_count..], 58).unwrap();
+        let mut oup: Vec<u8> = bigu.to_bytes_le();
+        if zero_count > 0 {
+            oup.resize(oup.len() + zero_count, 0u8);
         }
-        rr.reverse();
-        rr
+        oup.reverse();
+        oup
     };
-    Ok(rr)
+    Ok(oup)
 }
 
 // exclusive ascii: b'0' numeric zero, b'I' large ai, b'O' large o, b'l' small el
