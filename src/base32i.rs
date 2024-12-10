@@ -53,11 +53,11 @@ impl Base32I {
 */
 fn _encode_base32i(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
-    let (a, aa_sz) = {
-        let mut aa = vec![];
-        aa.extend(a);
-        let old_sz = aa.len();
+    let (inp, inp_sz) = {
+        let old_sz = a.len();
         let new_sz = ((old_sz + 4) / 5) * 5;
+        let mut aa = Vec::with_capacity(new_sz);
+        aa.extend(a);
         aa.resize(new_sz, 0u8);
         let aa_sz = match new_sz - old_sz {
             0 => 0,
@@ -69,14 +69,14 @@ fn _encode_base32i(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
         };
         (aa, aa_sz)
     };
-    let zcount = a.iter().take_while(|&&x| x == 0).count();
-    let r = {
-        let bigu = BigUint::from_bytes_be(&a[zcount..]);
-        let mut r: Vec<u8> = bigu.to_radix_le(32);
-        if zcount > 0 {
-            let azc = a[zcount];
-            let zzcount = (zcount / 5) * 8;
-            let (_, zzrest) = match zcount % 5 {
+    let zero_count = inp.iter().take_while(|&&x| x == 0).count();
+    let oup = {
+        let bigu = BigUint::from_bytes_be(&inp[zero_count..]);
+        let mut oup: Vec<u8> = bigu.to_radix_le(32);
+        if zero_count > 0 {
+            let azc = inp[zero_count];
+            let zzcount = (zero_count / 5) * 8;
+            let (_, zzrest) = match zero_count % 5 {
                 0 => (0, if azc > 0b0111 { 0 } else { 1 }),
                 1 => (
                     0,
@@ -102,41 +102,32 @@ fn _encode_base32i(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
                 4 => (0, 6 + if azc > 0b11111 { 0 } else { 1 }),
                 _ => (0, 0),
             };
-            r.resize(r.len() + zzcount + zzrest, 0u8);
+            oup.resize(oup.len() + zzcount + zzrest, 0u8);
         }
-        r
+        oup
     };
     // from binary to ascii
-    let mut rr = r[aa_sz..].to_vec();
-    rr.reverse();
-    for c in &mut rr {
-        *c = match ags.get(*c) {
-            Some(ascii) => ascii,
-            None => return Err(EncodeError::InvalidIndex(*c)),
-        };
-    }
-    let s = String::from_utf8_lossy(&rr).to_string();
-    assert!(s.len() == rr.len());
-    Ok(s)
+    let mut oupp = oup[inp_sz..].to_vec();
+    oupp.reverse();
+    ags.binary_to_ascii(&mut oupp)?;
+    let oupp_sz = oupp.len();
+    let string = unsafe { String::from_utf8_unchecked(oupp) };
+    assert!(string.len() == oupp_sz);
+    Ok(string)
 }
 
 fn _decode_base32i(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
-    // from ascii to binary
-    let mut r = a.as_bytes().to_vec();
-    for c in &mut r {
-        *c = match ags.position(*c) {
-            Some(ascii) => ascii,
-            None => return Err(DecodeError::InvalidByte(*c)),
-        };
-    }
     // decode binary
-    let (r, bb_sz) = {
-        let mut r0 = vec![];
-        r0.extend(r);
-        let old_sz = r0.len();
+    let (inp, bb_sz) = {
+        let old_sz = a.len();
         let bb_sz = 8 - (old_sz % 8);
         let bb_sz = if bb_sz == 8 { 0 } else { bb_sz };
-        r0.resize(old_sz + bb_sz, 0);
+        let new_sz = old_sz + bb_sz;
+        let mut r0 = Vec::with_capacity(new_sz);
+        r0.extend(a.as_bytes());
+        // from ascii to binary
+        ags.ascii_to_binary(&mut r0)?;
+        r0.resize(new_sz, 0u8);
         let bb_sz = match bb_sz {
             0 => 0,
             1 => 1,
@@ -150,14 +141,14 @@ fn _decode_base32i(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeErro
         };
         (r0, bb_sz)
     };
-    let zcount = r.iter().take_while(|&&x| x == 0).count();
-    let rr = {
-        let bigu = BigUint::from_radix_be(&r[zcount..], 32).unwrap();
-        let mut rr: Vec<u8> = bigu.to_radix_le(256);
-        if zcount > 0 {
-            let rzc = r[zcount];
-            let zzcount = (zcount / 8) * 5;
-            let (_, zzrest) = match zcount % 8 {
+    let zero_count = inp.iter().take_while(|&&x| x == 0).count();
+    let oupp = {
+        let bigu = BigUint::from_radix_be(&inp[zero_count..], 32).unwrap();
+        let mut oupp: Vec<u8> = bigu.to_bytes_le();
+        if zero_count > 0 {
+            let rzc = inp[zero_count];
+            let zzcount = (zero_count / 8) * 5;
+            let (_, zzrest) = match zero_count % 8 {
                 1 => (0, if rzc > 0b11 { 0 } else { 1 }),
                 2 => (0, 1 + if rzc > 0 { 0 } else { 1 }),
                 3 => (0, 1 + if rzc > 0b1111 { 0 } else { 1 }),
@@ -167,13 +158,13 @@ fn _decode_base32i(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeErro
                 7 => (0, 4 + if rzc > 0 { 0 } else { 1 }),
                 _ => (0, 0),
             };
-            rr.resize(rr.len() + zzcount + zzrest, 0u8);
+            oupp.resize(oupp.len() + zzcount + zzrest, 0u8);
         }
-        rr.reverse();
-        rr.resize(rr.len() - bb_sz, 0);
-        rr
+        oupp.reverse();
+        oupp.resize(oupp.len() - bb_sz, 0);
+        oupp
     };
-    Ok(rr)
+    Ok(oupp)
 }
 
 const _CMAP32: [u8; 32] = [
