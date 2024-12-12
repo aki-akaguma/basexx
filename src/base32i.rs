@@ -36,9 +36,11 @@ impl Base32I {
 }
 
 impl Base32I {
+    #[inline]
     pub fn encode(&self, a: &[u8]) -> Result<String, EncodeError> {
         _encode_base32i(&self.ags, a)
     }
+    #[inline]
     pub fn decode(&self, a: &str) -> Result<Vec<u8>, DecodeError> {
         _decode_base32i(&self.ags, a)
     }
@@ -51,6 +53,7 @@ impl Base32I {
  *      +-------------- MSB
  *      bigendian
 */
+#[inline(never)]
 fn _encode_base32i(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
     let (inp, inp_sz) = {
@@ -116,6 +119,7 @@ fn _encode_base32i(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
     Ok(string)
 }
 
+#[inline(never)]
 fn _decode_base32i(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // decode binary
     let (inp, bb_sz) = {

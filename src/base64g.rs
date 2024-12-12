@@ -36,9 +36,11 @@ impl Base64G {
 }
 
 impl Base64G {
+    #[inline]
     pub fn encode(&self, a: &[u8]) -> Result<String, EncodeError> {
         _encode_base64g(&self.ags, a)
     }
+    #[inline]
     pub fn decode(&self, a: &str) -> Result<Vec<u8>, DecodeError> {
         _decode_base64g(&self.ags, a)
     }
@@ -52,6 +54,7 @@ impl Base64G {
  *          011110 10_0010 1010_01 000101
  *      result from 3 bytes to 4bytes
 */
+#[inline(never)]
 fn _encode_base64g(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     let mut in_len = a.len();
     let mut out_len = 1 + ((in_len + 2) / 3) * 4;
@@ -127,6 +130,7 @@ fn _encode_base64g(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
     Ok(string)
 }
 
+#[inline(never)]
 fn _decode_base64g(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     let ina: Vec<u8> = a.as_bytes().to_vec();
     let mut in_sz = ina.len();
