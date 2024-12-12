@@ -36,9 +36,11 @@ impl Base58R {
 }
 
 impl Base58R {
+    #[inline]
     pub fn encode(&self, a: &[u8]) -> Result<String, EncodeError> {
         _encode_base58r(&self.ags, a)
     }
+    #[inline]
     pub fn decode(&self, a: &str) -> Result<Vec<u8>, DecodeError> {
         _decode_base58r(&self.ags, a)
     }
@@ -51,6 +53,7 @@ impl Base58R {
  *      +-------------- MSB
  *      bigendian
 */
+#[inline(never)]
 fn _encode_base58r(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
     let zero_count = a.iter().take_while(|&&x| x == 0).count();
@@ -76,6 +79,7 @@ fn _encode_base58r(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
     Ok(string)
 }
 
+#[inline(never)]
 fn _decode_base58r(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
     let mut inp = a.as_bytes().to_vec();

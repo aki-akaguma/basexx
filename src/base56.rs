@@ -36,9 +36,11 @@ impl Base56 {
 }
 
 impl Base56 {
+    #[inline]
     pub fn encode(&self, a: &[u8]) -> Result<String, EncodeError> {
         _encode_base56(&self.ags, a)
     }
+    #[inline]
     pub fn decode(&self, a: &str) -> Result<Vec<u8>, DecodeError> {
         _decode_base56(&self.ags, a)
     }
@@ -51,6 +53,7 @@ impl Base56 {
  *      +-------------- MSB
  *      bigendian
 */
+#[inline(never)]
 fn _encode_base56(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     // encode binary
     let zero_count = a.iter().take_while(|&&x| x == 0).count();
@@ -71,6 +74,7 @@ fn _encode_base56(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
     Ok(string)
 }
 
+#[inline(never)]
 fn _decode_base56(ags: &AsciiGraphicSet, a: &str) -> Result<Vec<u8>, DecodeError> {
     // from ascii to binary
     let mut inp = a.as_bytes().to_vec();
