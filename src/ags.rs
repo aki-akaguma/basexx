@@ -12,6 +12,9 @@ pub enum AgsError {
 */
 use super::*;
 
+mod ags_scalar;
+pub(crate) use ags_scalar::*;
+
 #[cfg(feature = "aligned_data")]
 #[derive(Debug)]
 pub(crate) struct AsciiGraphicSet {
@@ -89,6 +92,9 @@ impl AsciiGraphicSet {
     pub fn get(&self, index: u8) -> Option<u8> {
         self.binmap.get(index as usize).copied()
     }
+}
+
+impl AsciiGraphicSet {
     #[inline(always)]
     pub fn posq(&self, ascii: u8) -> Result<u8, DecodeError> {
         if let Some(&binary) = self.a128map.get(ascii as usize) {
@@ -105,6 +111,17 @@ impl AsciiGraphicSet {
         }
         Err(EncodeError::InvalidIndex(binary))
     }
+    #[allow(dead_code)]
+    #[inline(always)]
+    pub fn binary_to_ascii(&self, buf: &mut [u8]) -> Result<(), EncodeError> {
+        _binary_to_ascii_scalar(&self.binmap, buf)
+    }
+    #[allow(dead_code)]
+    #[inline(always)]
+    pub fn ascii_to_binary(&self, buf: &mut [u8]) -> Result<(), DecodeError> {
+        _ascii_to_binary_scalar(&self.a128map, buf)
+    }
+    /*
     #[allow(dead_code)]
     #[inline(always)]
     pub fn binary_to_ascii(&self, buf: &mut [u8]) -> Result<(), EncodeError> {
@@ -131,6 +148,7 @@ impl AsciiGraphicSet {
         }
         Ok(())
     }
+
     #[allow(dead_code)]
     #[inline(always)]
     pub fn ascii_to_binary(&self, buf: &mut [u8]) -> Result<(), DecodeError> {
@@ -157,13 +175,66 @@ impl AsciiGraphicSet {
         }
         Ok(())
     }
+    */
 }
 
-#[cfg(all(test, not(feature = "bench")))]
-mod tests;
+#[cfg(test)]
+mod tests {
+    #[allow(unused_imports)]
+    use super::super::*;
+    #[allow(unused_imports)]
+    use super::*;
 
-#[cfg(all(test, feature = "ubench"))]
-mod benches;
-#[cfg(all(test, feature = "ubench"))]
-#[allow(unused_imports)]
-pub(crate) use benches::*;
+    #[test]
+    fn test_ascii_graphic_set_1() {
+        let ags = AsciiGraphicSet::with_slice(&test_utils::_CMAP64);
+        //
+        assert_eq!(ags.len(), 64);
+        //
+        assert_eq!(ags.get(0), Some(b'A'));
+        assert_eq!(ags.get(1), Some(b'B'));
+        assert_eq!(ags.get(26), Some(b'a'));
+        assert_eq!(ags.get(27), Some(b'b'));
+        assert_eq!(ags.get(52), Some(b'0'));
+        assert_eq!(ags.get(53), Some(b'1'));
+        assert_eq!(ags.get(62), Some(b'+'));
+        assert_eq!(ags.get(63), Some(b'/'));
+        //
+        assert_eq!(ags.position(b'A'), Some(0));
+        assert_eq!(ags.position(b'B'), Some(1));
+        assert_eq!(ags.position(b'a'), Some(26));
+        assert_eq!(ags.position(b'b'), Some(27));
+        assert_eq!(ags.position(b'0'), Some(52));
+        assert_eq!(ags.position(b'1'), Some(53));
+        assert_eq!(ags.position(b'+'), Some(62));
+        assert_eq!(ags.position(b'/'), Some(63));
+    }
+
+    #[test]
+    fn test_ascii_graphic_set_binary_to_ascii() {
+        let ags = AsciiGraphicSet::with_slice(&test_utils::_CMAP64);
+        let mut buf = Vec::<u8>::with_capacity(64);
+        for i in 0..64 {
+            buf.push(i);
+        }
+        let r = ags.binary_to_ascii(&mut buf);
+        assert!(r.is_ok());
+        assert_eq!(buf, &test_utils::_CMAP64);
+    }
+
+    #[test]
+    fn test_ascii_graphic_set_ascii_to_binary() {
+        let ags = AsciiGraphicSet::with_slice(&test_utils::_CMAP64);
+        let mut valid = Vec::<u8>::with_capacity(64);
+        for i in 0..64 {
+            valid.push(i);
+        }
+        let mut buf = Vec::<u8>::with_capacity(64);
+        for i in 0..64 {
+            buf.push(test_utils::_CMAP64[i]);
+        }
+        let r = ags.ascii_to_binary(&mut buf);
+        assert!(r.is_ok());
+        assert_eq!(buf, valid);
+    }
+}
