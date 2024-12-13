@@ -52,8 +52,8 @@ use criterion::*;
 #[cfg(test)]
 criterion_group!(
     benches,
-    ags::bench_ags_enc,
-    ags::bench_ags_dec,
+    ags::bench_ags_scalar_enc,
+    ags::bench_ags_scalar_dec,
     base64::bench_base64_scalar_enc,
     base64::bench_base64_scalar_dec,
     base64::bench_base64_ssse3_enc,
