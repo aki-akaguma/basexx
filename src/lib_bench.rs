@@ -2,8 +2,8 @@ mod aligned_data;
 #[allow(unused_imports)]
 use aligned_data::*;
 
-mod ascii_graphic_set;
-use ascii_graphic_set::*;
+mod ags;
+use ags::*;
 
 mod base32;
 mod base32i;
@@ -52,8 +52,8 @@ use criterion::*;
 #[cfg(test)]
 criterion_group!(
     benches,
-    ascii_graphic_set::bench_ags_enc,
-    ascii_graphic_set::bench_ags_dec,
+    ags::bench_ags_enc,
+    ags::bench_ags_dec,
     base64::bench_base64_scalar_enc,
     base64::bench_base64_scalar_dec,
     base64::bench_base64_ssse3_enc,
