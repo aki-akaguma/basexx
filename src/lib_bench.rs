@@ -29,12 +29,12 @@ mod base58r;
 #[cfg(feature = "rug")]
 pub use base58r::*;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EncodeError {
     InvalidIndex(u8),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum DecodeError {
     InvalidByte(u8),
     InvalidLength(usize),
@@ -54,6 +54,8 @@ criterion_group!(
     benches,
     ags::bench_ags_scalar_enc,
     ags::bench_ags_scalar_dec,
+    ags::bench_ags_64_ssse3_enc,
+    ags::bench_ags_64_ssse3_dec,
     base64::bench_base64_scalar_enc,
     base64::bench_base64_scalar_dec,
     base64::bench_base64_ssse3_enc,

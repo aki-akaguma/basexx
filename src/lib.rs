@@ -29,12 +29,12 @@ mod base58r;
 #[cfg(feature = "rug")]
 pub use base58r::*;
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum EncodeError {
     InvalidIndex(u8),
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq)]
 pub enum DecodeError {
     InvalidByte(u8),
     InvalidLength(usize),
