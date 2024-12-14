@@ -15,6 +15,11 @@ use super::*;
 mod ags_scalar;
 pub(crate) use ags_scalar::*;
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod ags_64_ssse3;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(crate) use ags_64_ssse3::*;
+
 #[cfg(feature = "aligned_data")]
 #[derive(Debug)]
 pub(crate) struct AsciiGraphicSet {
@@ -114,12 +119,36 @@ impl AsciiGraphicSet {
     #[allow(dead_code)]
     #[inline(always)]
     pub fn binary_to_ascii(&self, buf: &mut [u8]) -> Result<(), EncodeError> {
-        _binary_to_ascii_scalar(&self.binmap, buf)
+        if cfg!(target_feature = "sse2") {
+            if self.len() == 64 {
+                if is_x86_feature_detected!("ssse3") {
+                    unsafe { _binary_to_ascii_64_ssse3(&self.binmap, buf) }
+                } else {
+                    _binary_to_ascii_scalar(&self.binmap, buf)
+                }
+            } else {
+                _binary_to_ascii_scalar(&self.binmap, buf)
+            }
+        } else {
+            _binary_to_ascii_scalar(&self.binmap, buf)
+        }
     }
     #[allow(dead_code)]
     #[inline(always)]
     pub fn ascii_to_binary(&self, buf: &mut [u8]) -> Result<(), DecodeError> {
-        _ascii_to_binary_scalar(&self.a128map, buf)
+        if cfg!(target_feature = "sse2") {
+            if self.len() == 64 {
+                if is_x86_feature_detected!("ssse3") {
+                    unsafe { _ascii_to_binary_64_ssse3(&self.a128map, buf) }
+                } else {
+                    _ascii_to_binary_scalar(&self.a128map, buf)
+                }
+            } else {
+                _ascii_to_binary_scalar(&self.a128map, buf)
+            }
+        } else {
+            _ascii_to_binary_scalar(&self.a128map, buf)
+        }
     }
     /*
     #[allow(dead_code)]
