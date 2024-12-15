@@ -3,42 +3,35 @@ use super::super::*;
 #[allow(dead_code)]
 #[inline(always)]
 pub(crate) fn _binary_to_ascii_scalar(lup: &[u8], buf: &mut [u8]) -> Result<(), EncodeError> {
+    macro_rules! step1 {
+        ($target: expr) => {
+            let a = $target;
+            if usize::from(a) >= lup.len() {
+                return Err(EncodeError::InvalidIndex(a));
+            }
+            $target = lup[a as usize];
+        };
+    }
     let buf = if buf.len() < 8 {
         buf
     } else {
         let mut iter = buf.chunks_exact_mut(8);
         let mut nx = iter.next();
         while let Some(bb) = nx {
-            bb[0] = lup[bb[0] as usize];
-            bb[1] = lup[bb[1] as usize];
-            bb[2] = lup[bb[2] as usize];
-            bb[3] = lup[bb[3] as usize];
-            bb[4] = lup[bb[4] as usize];
-            bb[5] = lup[bb[5] as usize];
-            bb[6] = lup[bb[6] as usize];
-            bb[7] = lup[bb[7] as usize];
+            step1!(bb[0]);
+            step1!(bb[1]);
+            step1!(bb[2]);
+            step1!(bb[3]);
+            step1!(bb[4]);
+            step1!(bb[5]);
+            step1!(bb[6]);
+            step1!(bb[7]);
             nx = iter.next();
         }
         iter.into_remainder()
     };
-    /*
-    let buf = if buf.len() < 4 {
-        buf
-    } else {
-        let mut iter = buf.chunks_exact_mut(4);
-        let mut nx = iter.next();
-        while let Some(bb) = nx {
-            bb[0] = lup[bb[0] as usize];
-            bb[1] = lup[bb[1] as usize];
-            bb[2] = lup[bb[2] as usize];
-            bb[3] = lup[bb[3] as usize];
-            nx = iter.next();
-        }
-        iter.into_remainder()
-    };
-    */
     for c in buf {
-        *c = lup[*c as usize];
+        step1!(*c);
     }
     Ok(())
 }
@@ -46,9 +39,13 @@ pub(crate) fn _binary_to_ascii_scalar(lup: &[u8], buf: &mut [u8]) -> Result<(), 
 #[allow(dead_code)]
 #[inline(always)]
 pub(crate) fn _ascii_to_binary_scalar(lup: &[u8], buf: &mut [u8]) -> Result<(), DecodeError> {
+    assert!(lup.len() == 128);
     macro_rules! step1 {
         ($target: expr) => {{
             let a = $target;
+            if usize::from(a) >= lup.len() {
+                return Err(DecodeError::InvalidByte(a));
+            }
             let aa = lup[a as usize];
             $target = if aa != 0xFF {
                 aa
@@ -75,22 +72,6 @@ pub(crate) fn _ascii_to_binary_scalar(lup: &[u8], buf: &mut [u8]) -> Result<(), 
         }
         iter.into_remainder()
     };
-    /*
-    let buf = if buf.len() < 4 {
-        buf
-    } else {
-        let mut iter = buf.chunks_exact_mut(4);
-        let mut nx = iter.next();
-        while let Some(bb) = nx {
-            step1!(bb[0]);
-            step1!(bb[1]);
-            step1!(bb[2]);
-            step1!(bb[3]);
-            nx = iter.next();
-        }
-        iter.into_remainder()
-    };
-    */
     for c in buf {
         step1!(*c);
     }
