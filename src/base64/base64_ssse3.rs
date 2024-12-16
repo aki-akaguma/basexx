@@ -40,21 +40,30 @@ pub(crate) unsafe fn _encode_base64_ssse3_chunks12(
         let end_ptr_limit = unsafe { end_ptr.sub(16 - 1) };
         //
         let mm_shuf: __m128i = _mm_set_epi8(10, 11, 9, 10, 7, 8, 6, 7, 4, 5, 3, 4, 1, 2, 0, 1);
-        let mm_t0_set1 = _mm_set1_epi32(0x0fc0fc00);
-        let mm_t1_set1 = _mm_set1_epi32(0x04000040);
-        let mm_t2_set1 = _mm_set1_epi32(0x003f03f0);
-        let mm_t3_set1 = _mm_set1_epi32(0x01000010);
         let mut cc16 = [0u64; 2];
         //
         while inp_ptr < end_ptr_limit {
+            // 01234567|01234567|01234567|01234567|01234567|01234567|
+            // aaaaaabb|bbbbcccc|ccdddddd|eeeeeeff|ffffgggg|gghhhhhh|
+            //
+            // gghhhhhh|ffffgggg|eeeeeeff|ccdddddd|bbbbcccc|aaaaaabb|
             let mm_in = _mm_loadu_si128(inp_ptr as *const __m128i);
-            let mm_in = _mm_shuffle_epi8(mm_in, mm_shuf); // ssse3
-            let mm_t0 = _mm_and_si128(mm_in, mm_t0_set1);
-            let mm_t1 = _mm_mulhi_epu16(mm_t0, mm_t1_set1);
-            let mm_t2 = _mm_and_si128(mm_in, mm_t2_set1);
-            let mm_t3 = _mm_mullo_epi16(mm_t2, mm_t3_set1);
-            let indices = _mm_or_si128(mm_t1, mm_t3);
-            _mm_storeu_si128(cc16.as_mut_ptr() as *mut __m128i, indices);
+            //
+            // ffffgggg|gghhhhhh|eeeeeeff|ffffgggg|bbbbcccc|ccdddddd|aaaaaabb|bbbbcccc|
+            let mm_in = _mm_shuffle_epi8(mm_in, mm_shuf); /* ssse3 */
+            // 0000gggg|gg000000|eeeeee00|00000000|0000cccc|cc000000|aaaaaa00|00000000|
+            let mm_t0 = _mm_and_si128(mm_in, _mm_set1_epi32(0x0fc0_fc00));
+            // 00000000|00gggggg|00000000|00eeeeee|00000000|00cccccc|00000000|00aaaaaa|
+            let mm_t1 = _mm_mulhi_epu16(mm_t0, _mm_set1_epi32(0x0400_0040));
+            // 00000000|00hhhhhh|000000ff|ffff0000|00000000|00dddddd|000000bb|bbbb0000|
+            let mm_t2 = _mm_and_si128(mm_in, _mm_set1_epi32(0x003f_03f0));
+            // 00hhhhhh|00000000|00ffffff|00000000|00dddddd|00000000|00bbbbbb|00000000|
+            let mm_t3 = _mm_mullo_epi16(mm_t2, _mm_set1_epi32(0x0100_0010));
+            //
+            // 00hhhhhh|00gggggg|00ffffff|00eeeeee|00dddddd|00cccccc|00bbbbbb|00aaaaaa|
+            let mm_out = _mm_or_si128(mm_t1, mm_t3);
+            //
+            _mm_storeu_si128(cc16.as_mut_ptr() as *mut __m128i, mm_out);
             //
             let c16 = unsafe { std::slice::from_raw_parts_mut(oup_ptr, 16) };
             oup_ptr = unsafe { oup_ptr.add(16) };
@@ -115,8 +124,6 @@ pub(crate) unsafe fn _decode_base64_ssse3_chunks16(
         //
         let mm_shuf: __m128i =
             _mm_setr_epi8(2, 1, 0, 6, 5, 4, 10, 9, 8, 14, 13, 12, -1, -1, -1, -1);
-        let mm_t0_set1 = _mm_set1_epi32(0x01400140);
-        let mm_t1_set1 = _mm_set1_epi32(0x00011000);
         let mut cc16 = [0u64; 2];
         //
         while inp_ptr < end_ptr_limit {
@@ -125,11 +132,18 @@ pub(crate) unsafe fn _decode_base64_ssse3_chunks16(
             cc16.copy_from_slice(a16);
             ags.ascii_to_binary_64_ssse3(&mut cc16)?;
             //
+            // 00hhhhhh|00gggggg|00ffffff|00eeeeee|00dddddd|00cccccc|00bbbbbb|00aaaaaa|
             let mm_in = _mm_loadu_si128(cc16.as_ptr() as *const __m128i);
-            let mm_t0 = _mm_maddubs_epi16(mm_in, mm_t0_set1); // ssse3
-            let mm_t1 = _mm_madd_epi16(mm_t0, mm_t1_set1);
-            let mm_values = _mm_shuffle_epi8(mm_t1, mm_shuf); // ssse3
-            _mm_storeu_si128(oup_ptr as *mut __m128i, mm_values);
+            //
+            // 0000gggg|gghhhhhh|0000eeee|eeffffff|0000cccc|ccdddddd|0000aaaa|aabbbbbb|
+            let mm_t0 = _mm_maddubs_epi16(mm_in, _mm_set1_epi32(0x0140_0140)); /* ssse3 */
+            // 00000000|eeeeeeff|ffffgggg|gghhhhhh|00000000|aaaaaabb|bbbbcccc|ccdddddd|
+            let mm_t1 = _mm_madd_epi16(mm_t0, _mm_set1_epi32(0x0001_1000));
+            //
+            // gghhhhhh|ffffgggg|eeeeeeff|ccdddddd|bbbbcccc|aaaaaabb|
+            let mm_out = _mm_shuffle_epi8(mm_t1, mm_shuf); /* ssse3 */
+            //
+            _mm_storeu_si128(oup_ptr as *mut __m128i, mm_out);
             //
             oup_ptr = unsafe { oup_ptr.add(12) };
             inp_ptr = unsafe { inp_ptr.add(16) };
