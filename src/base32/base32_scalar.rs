@@ -13,7 +13,6 @@ pub(crate) fn _encode_base32_scalar(
     inp: &[u8],
 ) -> Result<String, EncodeError> {
     let oup_sz = 1 + ((inp.len() + 4) / 5) * 8;
-    // encode binary
     let mut oup = vec![0u8; oup_sz];
     let oup_idx = _encode_base32_scalar_chunks10(ags, inp, &mut oup[0..])?;
     oup.resize(oup_idx, 0u8);

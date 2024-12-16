@@ -20,6 +20,11 @@ mod ags_64_ssse3;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(crate) use ags_64_ssse3::*;
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod ags_32_ssse3;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(crate) use ags_32_ssse3::*;
+
 #[cfg(feature = "aligned_data")]
 #[derive(Debug)]
 pub(crate) struct AsciiGraphicSet {
@@ -164,6 +169,21 @@ impl AsciiGraphicSet {
     pub(crate) fn ascii_to_binary_64_ssse3(&self, buf: &mut [u64; 2]) -> Result<(), DecodeError> {
         assert!(self.len() == 64);
         unsafe { _ascii_to_binary_64_ssse3_c16(&self.a128map, buf) }
+    }
+    //
+    #[cfg(target_feature = "sse2")]
+    #[allow(dead_code)]
+    #[inline(always)]
+    pub(crate) fn binary_to_ascii_32_ssse3(&self, buf: &mut [u64; 2]) -> Result<(), EncodeError> {
+        assert!(self.len() == 32);
+        unsafe { _binary_to_ascii_32_ssse3_c16(&self.binmap, buf) }
+    }
+    #[cfg(target_feature = "sse2")]
+    #[allow(dead_code)]
+    #[inline(always)]
+    pub(crate) fn ascii_to_binary_32_ssse3(&self, buf: &mut [u64; 2]) -> Result<(), DecodeError> {
+        assert!(self.len() == 32);
+        unsafe { _ascii_to_binary_32_ssse3_c16(&self.a128map, buf) }
     }
     /*
     #[allow(dead_code)]
