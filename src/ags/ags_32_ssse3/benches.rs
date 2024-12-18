@@ -18,19 +18,3 @@ pub fn bench_ags_32_ssse3_enc(c: &mut Criterion) {
         })
     });
 }
-
-#[allow(dead_code)]
-pub fn bench_ags_32_ssse3_dec(c: &mut Criterion) {
-    if !is_x86_feature_detected!("ssse3") {
-        return;
-    }
-    let v = test_utils::read_t4_base32_ascii().as_bytes().to_vec();
-    let ags = AsciiGraphicSet::with_slice(&test_utils::_CMAP32);
-    c.bench_function("ags_32_ssse3_dec", |b| {
-        b.iter(|| {
-            let mut v = v.clone();
-            //let _ = ags.ascii_to_binary(&mut v);
-            let _ = unsafe { _ascii_to_binary_32_ssse3(&ags.a128map, &mut v) };
-        })
-    });
-}

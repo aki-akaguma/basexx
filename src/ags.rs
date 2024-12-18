@@ -16,6 +16,11 @@ mod ags_scalar;
 pub(crate) use ags_scalar::*;
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod ags_128_ssse3;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(crate) use ags_128_ssse3::*;
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod ags_64_ssse3;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(crate) use ags_64_ssse3::*;
@@ -83,7 +88,6 @@ impl AsciiGraphicSet {
         }
         Self { binmap, a128map }
     }
-    #[allow(dead_code)]
     #[inline]
     pub fn len(&self) -> usize {
         self.binmap.len()
@@ -125,9 +129,11 @@ impl AsciiGraphicSet {
     #[inline(always)]
     pub fn binary_to_ascii(&self, buf: &mut [u8]) -> Result<(), EncodeError> {
         if cfg!(target_feature = "sse2") {
-            if self.len() == 64 {
-                if is_x86_feature_detected!("ssse3") {
+            if is_x86_feature_detected!("ssse3") {
+                if self.len() == 64 {
                     unsafe { _binary_to_ascii_64_ssse3(&self.binmap, buf) }
+                } else if self.len() == 32 {
+                    unsafe { _binary_to_ascii_32_ssse3(&self.binmap, buf) }
                 } else {
                     _binary_to_ascii_scalar(&self.binmap, buf)
                 }
@@ -142,12 +148,8 @@ impl AsciiGraphicSet {
     #[inline(always)]
     pub fn ascii_to_binary(&self, buf: &mut [u8]) -> Result<(), DecodeError> {
         if cfg!(target_feature = "sse2") {
-            if self.len() == 64 {
-                if is_x86_feature_detected!("ssse3") {
-                    unsafe { _ascii_to_binary_64_ssse3(&self.a128map, buf) }
-                } else {
-                    _ascii_to_binary_scalar(&self.a128map, buf)
-                }
+            if is_x86_feature_detected!("ssse3") {
+                unsafe { _ascii_to_binary_128_ssse3(&self.a128map, buf) }
             } else {
                 _ascii_to_binary_scalar(&self.a128map, buf)
             }
@@ -168,7 +170,7 @@ impl AsciiGraphicSet {
     #[inline(always)]
     pub(crate) fn ascii_to_binary_64_ssse3(&self, buf: &mut [u64; 2]) -> Result<(), DecodeError> {
         assert!(self.len() == 64);
-        unsafe { _ascii_to_binary_64_ssse3_c16(&self.a128map, buf) }
+        unsafe { _ascii_to_binary_128_ssse3_c16(&self.a128map, buf) }
     }
     //
     #[cfg(target_feature = "sse2")]
@@ -183,63 +185,8 @@ impl AsciiGraphicSet {
     #[inline(always)]
     pub(crate) fn ascii_to_binary_32_ssse3(&self, buf: &mut [u64; 2]) -> Result<(), DecodeError> {
         assert!(self.len() == 32);
-        unsafe { _ascii_to_binary_32_ssse3_c16(&self.a128map, buf) }
+        unsafe { _ascii_to_binary_128_ssse3_c16(&self.a128map, buf) }
     }
-    /*
-    #[allow(dead_code)]
-    #[inline(always)]
-    pub fn binary_to_ascii(&self, buf: &mut [u8]) -> Result<(), EncodeError> {
-        let buf = if buf.len() < 8 {
-            buf
-        } else {
-            let mut iter = buf.chunks_exact_mut(8);
-            let mut nx = iter.next();
-            while let Some(bb) = nx {
-                bb[0] = self.getq(bb[0])?;
-                bb[1] = self.getq(bb[1])?;
-                bb[2] = self.getq(bb[2])?;
-                bb[3] = self.getq(bb[3])?;
-                bb[4] = self.getq(bb[4])?;
-                bb[5] = self.getq(bb[5])?;
-                bb[6] = self.getq(bb[6])?;
-                bb[7] = self.getq(bb[7])?;
-                nx = iter.next();
-            }
-            iter.into_remainder()
-        };
-        for c in buf {
-            *c = self.getq(*c)?;
-        }
-        Ok(())
-    }
-
-    #[allow(dead_code)]
-    #[inline(always)]
-    pub fn ascii_to_binary(&self, buf: &mut [u8]) -> Result<(), DecodeError> {
-        let buf = if buf.len() < 8 {
-            buf
-        } else {
-            let mut iter = buf.chunks_exact_mut(8);
-            let mut nx = iter.next();
-            while let Some(bb) = nx {
-                bb[0] = self.posq(bb[0])?;
-                bb[1] = self.posq(bb[1])?;
-                bb[2] = self.posq(bb[2])?;
-                bb[3] = self.posq(bb[3])?;
-                bb[4] = self.posq(bb[4])?;
-                bb[5] = self.posq(bb[5])?;
-                bb[6] = self.posq(bb[6])?;
-                bb[7] = self.posq(bb[7])?;
-                nx = iter.next();
-            }
-            iter.into_remainder()
-        };
-        for c in buf {
-            *c = self.posq(*c)?;
-        }
-        Ok(())
-    }
-    */
 }
 
 #[cfg(test)]
