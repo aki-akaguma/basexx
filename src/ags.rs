@@ -201,6 +201,21 @@ impl AsciiGraphicSet {
     #[cfg(target_feature = "sse2")]
     #[allow(dead_code)]
     #[inline(always)]
+    pub(crate) fn binary_to_ascii_64_avx2(&self, buf: &mut [u64; 4]) -> Result<(), EncodeError> {
+        assert!(self.len() == 64);
+        unsafe { _binary_to_ascii_64_avx2_c32(&self.binmap, buf) }
+    }
+    #[cfg(target_feature = "sse2")]
+    #[allow(dead_code)]
+    #[inline(always)]
+    pub(crate) fn ascii_to_binary_64_avx2(&self, buf: &mut [u64; 4]) -> Result<(), DecodeError> {
+        assert!(self.len() == 64);
+        unsafe { _ascii_to_binary_128_avx2_c32(&self.a128map, buf) }
+    }
+    //
+    #[cfg(target_feature = "sse2")]
+    #[allow(dead_code)]
+    #[inline(always)]
     pub(crate) fn binary_to_ascii_32_ssse3(&self, buf: &mut [u64; 2]) -> Result<(), EncodeError> {
         assert!(self.len() == 32);
         unsafe { _binary_to_ascii_32_ssse3_c16(&self.binmap, buf) }

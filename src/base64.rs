@@ -8,6 +8,11 @@ mod base64_ssse3;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(crate) use base64_ssse3::*;
 
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod base64_avx2;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(crate) use base64_avx2::*;
+
 /*
  * ref.)
  *     https://en.wikipedia.org/wiki/Base64
@@ -48,7 +53,9 @@ impl Base64 {
         _encode_base64_scalar(&self.ags, a)
         */
         if cfg!(target_feature = "sse2") {
-            if is_x86_feature_detected!("ssse3") {
+            if is_x86_feature_detected!("avx2") {
+                unsafe { _encode_base64_avx2(&self.ags, a) }
+            } else if is_x86_feature_detected!("ssse3") {
                 unsafe { _encode_base64_ssse3(&self.ags, a) }
             } else {
                 _encode_base64_scalar(&self.ags, a)
@@ -62,7 +69,9 @@ impl Base64 {
         _decode_base64_scalar(&self.ags, a)
         */
         if cfg!(target_feature = "sse2") {
-            if is_x86_feature_detected!("ssse3") {
+            if is_x86_feature_detected!("avx2") {
+                unsafe { _decode_base64_avx2(&self.ags, a) }
+            } else if is_x86_feature_detected!("ssse3") {
                 unsafe { _decode_base64_ssse3(&self.ags, a) }
             } else {
                 _decode_base64_scalar(&self.ags, a)
