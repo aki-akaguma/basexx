@@ -57,6 +57,7 @@ criterion_group!(
     ags::bench_ags_32_ssse3_enc,
     ags::bench_ags_64_ssse3_enc,
     ags::bench_ags_128_ssse3_dec,
+    ags::bench_ags_128_avx2_dec,
     base64::bench_base64_scalar_enc,
     base64::bench_base64_scalar_dec,
     base64::bench_base64_ssse3_enc,
