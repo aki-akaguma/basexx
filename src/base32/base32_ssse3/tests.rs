@@ -60,8 +60,11 @@ fn it_works_4() {
     if !is_x86_feature_detected!("ssse3") {
         return;
     }
-    let inp = b"ABCDEFGHIJKLMNOPQRSTUVWXYZ".to_vec();
-    let oup = "IFBEGRCFIZDUQSKKJNGE2TSPKBIVEU2UKVLFOWCZLI".to_string();
+    //0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    //ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
+    let inp = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_vec();
+    let oup = "IFBEGRCFIZDUQSKKJNGE2TSPKBIVEU2UKVLFOWCZLJQWEY3EMVTGO2DJNJVWY3LON5YHC4TTOR2XM53YPF5DAMJSGM2DKNRXHA4Q"
+        .to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP32);
     let r1 = unsafe { _encode_base32_ssse3(&ags, &inp).unwrap() };
     assert_eq!(r1, oup);

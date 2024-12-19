@@ -5,59 +5,59 @@ use super::*;
 
 #[test]
 fn it_works_0() {
-    if !is_x86_feature_detected!("ssse3") {
+    if !is_x86_feature_detected!("avx2") {
         return;
     }
     let inp = [0u8, 0, 1, 1].to_vec();
     let oup = "AAABAQ".to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-    let r1 = unsafe { _encode_base64_ssse3(&ags, &inp).unwrap() };
+    let r1 = unsafe { _encode_base64_avx2(&ags, &inp).unwrap() };
     assert_eq!(r1, oup);
-    let r2 = unsafe { _decode_base64_ssse3(&ags, &r1).unwrap() };
+    let r2 = unsafe { _decode_base64_avx2(&ags, &r1).unwrap() };
     assert_eq!(r2, inp);
 }
 #[test]
 fn it_works_1() {
-    if !is_x86_feature_detected!("ssse3") {
+    if !is_x86_feature_detected!("avx2") {
         return;
     }
     let inp = b"ABCDEFGHIJKL".to_vec();
     let oup = "QUJDREVGR0hJSktM".to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-    let r1 = unsafe { _encode_base64_ssse3(&ags, &inp).unwrap() };
+    let r1 = unsafe { _encode_base64_avx2(&ags, &inp).unwrap() };
     assert_eq!(r1, oup);
-    let r2 = unsafe { _decode_base64_ssse3(&ags, &r1).unwrap() };
+    let r2 = unsafe { _decode_base64_avx2(&ags, &r1).unwrap() };
     assert_eq!(r2, inp);
 }
 #[test]
 fn it_works_2() {
-    if !is_x86_feature_detected!("ssse3") {
+    if !is_x86_feature_detected!("avx2") {
         return;
     }
     let inp = b"ABCDEFGHIJK".to_vec();
     let oup = "QUJDREVGR0hJSks".to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-    let r1 = unsafe { _encode_base64_ssse3(&ags, &inp).unwrap() };
+    let r1 = unsafe { _encode_base64_avx2(&ags, &inp).unwrap() };
     assert_eq!(r1, oup);
-    let r2 = unsafe { _decode_base64_ssse3(&ags, &r1).unwrap() };
+    let r2 = unsafe { _decode_base64_avx2(&ags, &r1).unwrap() };
     assert_eq!(r2, inp);
 }
 #[test]
 fn it_works_3() {
-    if !is_x86_feature_detected!("ssse3") {
+    if !is_x86_feature_detected!("avx2") {
         return;
     }
     let inp = b"ABCDEFGHIJ".to_vec();
     let oup = "QUJDREVGR0hJSg".to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-    let r1 = unsafe { _encode_base64_ssse3(&ags, &inp).unwrap() };
+    let r1 = unsafe { _encode_base64_avx2(&ags, &inp).unwrap() };
     assert_eq!(r1, oup);
-    let r2 = unsafe { _decode_base64_ssse3(&ags, &r1).unwrap() };
+    let r2 = unsafe { _decode_base64_avx2(&ags, &r1).unwrap() };
     assert_eq!(r2, inp);
 }
 #[test]
 fn it_works_4() {
-    if !is_x86_feature_detected!("ssse3") {
+    if !is_x86_feature_detected!("avx2") {
         return;
     }
     //0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
@@ -66,33 +66,33 @@ fn it_works_4() {
     let oup = "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODk"
         .to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-    let r1 = unsafe { _encode_base64_ssse3(&ags, &inp).unwrap() };
+    let r1 = unsafe { _encode_base64_avx2(&ags, &inp).unwrap() };
     assert_eq!(r1, oup);
-    let r2 = unsafe { _decode_base64_ssse3(&ags, &r1).unwrap() };
+    let r2 = unsafe { _decode_base64_avx2(&ags, &r1).unwrap() };
     assert_eq!(r2, inp);
 }
 
 #[test]
-fn test_base64_ssse3_file_t4_enc() {
-    if !is_x86_feature_detected!("ssse3") {
+fn test_base64_avx2_file_t4_enc() {
+    if !is_x86_feature_detected!("avx2") {
         return;
     }
     let inp = test_utils::read_t4_data();
     let oup = test_utils::read_t4_base64_ascii();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-    let r1 = unsafe { _encode_base64_ssse3(&ags, &inp).unwrap() };
+    let r1 = unsafe { _encode_base64_avx2(&ags, &inp).unwrap() };
     assert_eq!(r1, oup);
 }
 
 #[test]
-fn test_base64_ssse3_file_t4_dec() {
-    if !is_x86_feature_detected!("ssse3") {
+fn test_base64_avx2_file_t4_dec() {
+    if !is_x86_feature_detected!("avx2") {
         return;
     }
     let inp = test_utils::read_t4_base64_ascii();
     let oup = test_utils::read_t4_data();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-    let r2 = unsafe { _decode_base64_ssse3(&ags, &inp).unwrap() };
+    let r2 = unsafe { _decode_base64_avx2(&ags, &inp).unwrap() };
     assert_eq!(r2, oup);
 }
 
@@ -134,25 +134,25 @@ use rstest_reuse::{self, *};
 fn two_simple_case_1(#[case] input: &[u8], #[case] output: &str) {}
 
 #[apply(two_simple_case_1)]
-fn base64_ssse3_encode_test(#[case] input: &[u8], #[case] output: &str) {
-    if !is_x86_feature_detected!("ssse3") {
+fn base64_avx2_encode_test(#[case] input: &[u8], #[case] output: &str) {
+    if !is_x86_feature_detected!("avx2") {
         return;
     }
     let inp = input.to_vec();
     let oup = output.to_string();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-    let r1 = unsafe { _encode_base64_ssse3(&ags, &inp).unwrap() };
+    let r1 = unsafe { _encode_base64_avx2(&ags, &inp).unwrap() };
     assert_eq!(r1, oup);
 }
 
 #[apply(two_simple_case_1)]
-fn base64_ssse3_decode_test(#[case] output: &[u8], #[case] input: &str) {
-    if !is_x86_feature_detected!("ssse3") {
+fn base64_avx2_decode_test(#[case] output: &[u8], #[case] input: &str) {
+    if !is_x86_feature_detected!("avx2") {
         return;
     }
     let inp = input.to_string();
     let oup = output.to_vec();
     let ags = AsciiGraphicSet::with_slice(&_CMAP64);
-    let r2 = unsafe { _decode_base64_ssse3(&ags, &inp).unwrap() };
+    let r2 = unsafe { _decode_base64_avx2(&ags, &inp).unwrap() };
     assert_eq!(r2, oup);
 }
