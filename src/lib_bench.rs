@@ -70,6 +70,8 @@ criterion_group!(
     base32::bench_base32_scalar_dec,
     base32::bench_base32_ssse3_enc,
     base32::bench_base32_ssse3_dec,
+    base32::bench_base32_avx2_enc,
+    base32::bench_base32_avx2_dec,
     base64g::bench_base64g_enc,
     base64g::bench_base64g_dec,
     base32i::bench_base32i_enc,
