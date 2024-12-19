@@ -58,56 +58,13 @@ macro_rules! dec_check_error {
     ($err_buf: expr, $buf_ptr: expr) => {
         if $err_buf[0] != 0 || $err_buf[1] != 0 {
             // on error
-            let c1 = $err_buf[0];
-            if c1 & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr));
-            }
-            if (c1 >> 8) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(1)));
-            }
-            if (c1 >> (8 * 2)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(2)));
-            }
-            if (c1 >> (8 * 3)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(3)));
-            }
-            if (c1 >> (8 * 4)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(4)));
-            }
-            if (c1 >> (8 * 5)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(5)));
-            }
-            if (c1 >> (8 * 6)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(6)));
-            }
-            if (c1 >> (8 * 7)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(7)));
-            }
-            //
-            let c2 = $err_buf[1];
-            if c2 & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(8)));
-            }
-            if (c2 >> 8) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(9)));
-            }
-            if (c2 >> (8 * 2)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(10)));
-            }
-            if (c2 >> (8 * 3)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(11)));
-            }
-            if (c2 >> (8 * 4)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(12)));
-            }
-            if (c2 >> (8 * 5)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(13)));
-            }
-            if (c2 >> (8 * 6)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(14)));
-            }
-            if (c2 >> (8 * 7)) & 0xFF != 0 {
-                return Err(DecodeError::InvalidByte(*$buf_ptr.add(15)));
+            for i in 0..2 {
+                let cc = $err_buf[i];
+                for j in 0..8 {
+                    if (cc >> (8 * j)) & 0xFF != 0 {
+                        return Err(DecodeError::InvalidByte(*($buf_ptr.add(j + 8 * i))));
+                    }
+                }
             }
         }
     };
