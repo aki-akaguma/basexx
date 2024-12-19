@@ -62,6 +62,7 @@ pub fn read_file_ascii(fnm: &str) -> String {
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 #[allow(unused_macros)]
+#[macro_export]
 macro_rules! eprintln_mm128 {
     ($label: expr, $target:expr) => {{
         #[cfg(target_arch = "x86")]
@@ -77,6 +78,7 @@ macro_rules! eprintln_mm128 {
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 #[allow(unused_macros)]
+#[macro_export]
 macro_rules! eprintln_mm256 {
     ($label: expr, $target:expr) => {{
         #[cfg(target_arch = "x86")]

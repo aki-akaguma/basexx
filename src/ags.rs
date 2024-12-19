@@ -31,9 +31,19 @@ mod ags_64_ssse3;
 pub(crate) use ags_64_ssse3::*;
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod ags_64_avx2;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(crate) use ags_64_avx2::*;
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod ags_32_ssse3;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(crate) use ags_32_ssse3::*;
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod ags_32_avx2;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(crate) use ags_32_avx2::*;
 
 #[cfg(feature = "aligned_data")]
 #[derive(Debug)]
@@ -134,7 +144,15 @@ impl AsciiGraphicSet {
     #[inline(always)]
     pub fn binary_to_ascii(&self, buf: &mut [u8]) -> Result<(), EncodeError> {
         if cfg!(target_feature = "sse2") {
-            if is_x86_feature_detected!("ssse3") {
+            if is_x86_feature_detected!("avx2") {
+                if self.len() == 64 {
+                    unsafe { _binary_to_ascii_64_avx2(&self.binmap, buf) }
+                } else if self.len() == 32 {
+                    unsafe { _binary_to_ascii_32_avx2(&self.binmap, buf) }
+                } else {
+                    _binary_to_ascii_scalar(&self.binmap, buf)
+                }
+            } else if is_x86_feature_detected!("ssse3") {
                 if self.len() == 64 {
                     unsafe { _binary_to_ascii_64_ssse3(&self.binmap, buf) }
                 } else if self.len() == 32 {
