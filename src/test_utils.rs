@@ -59,3 +59,36 @@ pub fn read_file_ascii(fnm: &str) -> String {
     };
     String::from_utf8_lossy(vv).to_string()
 }
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[allow(unused_macros)]
+macro_rules! eprintln_mm128 {
+    ($label: expr, $target:expr) => {{
+        #[cfg(target_arch = "x86")]
+        use core::arch::x86::*;
+        #[cfg(target_arch = "x86_64")]
+        use core::arch::x86_64::*;
+        //
+        let buf = [0u64; 2];
+        _mm_storeu_si128(buf.as_ptr() as *mut __m128i, $target);
+        eprintln!("{}: {:016x} / {:016x}", $label, buf[0], buf[1]);
+    }};
+}
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+#[allow(unused_macros)]
+macro_rules! eprintln_mm256 {
+    ($label: expr, $target:expr) => {{
+        #[cfg(target_arch = "x86")]
+        use core::arch::x86::*;
+        #[cfg(target_arch = "x86_64")]
+        use core::arch::x86_64::*;
+        //
+        let buf = [0u64; 4];
+        _mm256_storeu_si256(buf.as_ptr() as *mut __m256i, $target);
+        eprintln!(
+            "{}: {:016x} / {:016x} / {:016x} / {:016x}",
+            $label, buf[0], buf[1], buf[2], buf[3]
+        );
+    }};
+}

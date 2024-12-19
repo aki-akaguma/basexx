@@ -21,6 +21,11 @@ mod ags_128_ssse3;
 pub(crate) use ags_128_ssse3::*;
 
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+mod ags_128_avx2;
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+pub(crate) use ags_128_avx2::*;
+
+#[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 mod ags_64_ssse3;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(crate) use ags_64_ssse3::*;
@@ -148,7 +153,9 @@ impl AsciiGraphicSet {
     #[inline(always)]
     pub fn ascii_to_binary(&self, buf: &mut [u8]) -> Result<(), DecodeError> {
         if cfg!(target_feature = "sse2") {
-            if is_x86_feature_detected!("ssse3") {
+            if is_x86_feature_detected!("avx2") {
+                unsafe { _ascii_to_binary_128_avx2(&self.a128map, buf) }
+            } else if is_x86_feature_detected!("ssse3") {
                 unsafe { _ascii_to_binary_128_ssse3(&self.a128map, buf) }
             } else {
                 _ascii_to_binary_scalar(&self.a128map, buf)
