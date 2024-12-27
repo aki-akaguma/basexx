@@ -2,26 +2,24 @@ use basexx::*;
 use rstest::rstest;
 use rstest_reuse::{self, *};
 
+mod utils;
+use utils::*;
+
 #[test]
-fn test_base58_1() {
-    let inp = b"ABCDEFGHIJK".to_vec();
-    let oup = "HBb7dQEaKrdXjkN".to_string();
+fn test_base58_file_t4_enc() {
+    let inp = read_file_data("fixtures/t4.data");
+    let oup = read_file_ascii("fixtures/t4.base58.ascii");
     let base58 = Base58::default();
     assert_eq!(base58.encode(&inp).unwrap(), oup);
 }
 
 #[test]
-fn test_base58_2() {
-    let inp = b"ABCDEFGHIJK".to_vec();
-    let oup = "HBb7dQEaKrdXjkN".to_string();
+fn test_base58_file_t4_dec() {
+    let inp = read_file_ascii("fixtures/t4.base58.ascii");
+    let oup = read_file_data("fixtures/t4.data");
     let base58 = Base58::default();
-    let r1 = base58.encode(&inp).unwrap();
-    assert_eq!(r1, oup);
-    let r2 = base58.decode(&r1).unwrap();
-    assert_eq!(r2, inp);
+    assert_eq!(base58.decode(&inp).unwrap(), oup);
 }
-/*
-*/
 
 #[template]
 #[rstest]

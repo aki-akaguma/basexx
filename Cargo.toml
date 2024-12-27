@@ -28,6 +28,10 @@ rstest_reuse = "0.7"
 #lto=true
 #debug = true
 
+[[bin]]
+name = "basexx"
+path = "src/test_main.rs"
+
 [[bench]]
 name = "lib_bench"
 path = "src/lib_bench.rs"

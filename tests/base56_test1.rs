@@ -2,26 +2,24 @@ use basexx::*;
 use rstest::rstest;
 use rstest_reuse::{self, *};
 
+mod utils;
+use utils::*;
+
 #[test]
-fn test_base56_1() {
-    let inp = b"ABCDEFGHIJK".to_vec();
-    let oup = "UT9ZN6uuGzmJTem".to_string();
+fn test_base56_file_t4_enc() {
+    let inp = read_file_data("fixtures/t4.data");
+    let oup = read_file_ascii("fixtures/t4.base56.ascii");
     let base56 = Base56::default();
     assert_eq!(base56.encode(&inp).unwrap(), oup);
 }
 
 #[test]
-fn test_base56_2() {
-    let inp = b"ABCDEFGHIJK".to_vec();
-    let oup = "UT9ZN6uuGzmJTem".to_string();
+fn test_base56_file_t4_dec() {
+    let inp = read_file_ascii("fixtures/t4.base56.ascii");
+    let oup = read_file_data("fixtures/t4.data");
     let base56 = Base56::default();
-    let r1 = base56.encode(&inp).unwrap();
-    assert_eq!(r1, oup);
-    let r2 = base56.decode(&r1).unwrap();
-    assert_eq!(r2, inp);
+    assert_eq!(base56.decode(&inp).unwrap(), oup);
 }
-/*
-*/
 
 #[template]
 #[rstest]

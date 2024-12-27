@@ -5,27 +5,6 @@ use rstest_reuse::{self, *};
 mod utils;
 use utils::*;
 
-/*
-#[test]
-fn test_base32_1() {
-    let inp = b"ABCDEFGHIJK".to_vec();
-    let oup = "IFBEGRCFIZDUQSKKJM".to_string();
-    let base32 = Base32::default();
-    assert_eq!(base32.encode(&inp).unwrap(), oup);
-}
-
-#[test]
-fn test_base32_2() {
-    let inp = b"ABCDEFGHIJK".to_vec();
-    let oup = "IFBEGRCFIZDUQSKKJM".to_string();
-    let base32 = Base32::default();
-    let r1 = base32.encode(&inp).unwrap();
-    assert_eq!(r1, oup);
-    let r2 = base32.decode(&r1).unwrap();
-    assert_eq!(r2, inp);
-}
-*/
-
 #[test]
 fn test_base32_file_t4_enc() {
     let inp = read_file_data("fixtures/t4.data");
