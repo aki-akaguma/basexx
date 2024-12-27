@@ -43,6 +43,20 @@ fn it_works_3() {
     let r2 = _decode_base64g(&ags, &r1).unwrap();
     assert_eq!(r2, inp);
 }
+#[test]
+fn it_works_4() {
+    //0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef
+    //ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789
+    let inp = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_vec();
+    let oup =
+        "QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODk="
+            .to_string();
+    let ags = AsciiGraphicSet::with_slice(&_CMAP64);
+    let r1 = _encode_base64g(&ags, &inp).unwrap();
+    assert_eq!(r1, oup);
+    let r2 = _decode_base64g(&ags, &r1).unwrap();
+    assert_eq!(r2, inp);
+}
 
 #[test]
 fn test_base64g_file_t4_enc() {
