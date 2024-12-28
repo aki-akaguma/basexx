@@ -7,7 +7,10 @@ clean:
 	cargo clean
 
 clippy:
-	cargo clippy
+	cargo clippy --tests
+
+clippy-all:
+	cargo clippy --tests -- -Dclippy::all
 
 test-build:
 	cargo test --no-run

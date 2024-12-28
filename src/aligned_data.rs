@@ -69,42 +69,42 @@ mod test {
     #[test]
     fn it_works_0() {
         let mem0 = AlignedData64::alloc(100);
-        let addr = mem0.as_ptr() as *const u8 as u64;
+        let addr = mem0.as_ptr() as u64;
         assert_eq!(addr % 64, 0);
         assert!(mem0.len() >= 100);
     }
     #[test]
     fn it_works_1() {
         let mem0 = AlignedData64::alloc(1000);
-        let addr = mem0.as_ptr() as *const u8 as u64;
+        let addr = mem0.as_ptr() as u64;
         assert_eq!(addr % 64, 0);
         assert!(mem0.len() >= 1000);
     }
     #[test]
     fn it_works_2() {
         let mem0 = AlignedData64::alloc(1);
-        let addr = mem0.as_ptr() as *const u8 as u64;
+        let addr = mem0.as_ptr() as u64;
         assert_eq!(addr % 64, 0);
         assert_eq!(mem0.len(), 64);
     }
     #[test]
     fn it_works_3() {
         let mem0 = AlignedData128::alloc(100);
-        let addr = mem0.as_ptr() as *const u8 as u64;
+        let addr = mem0.as_ptr() as u64;
         assert_eq!(addr % 128, 0);
         assert!(mem0.len() >= 100);
     }
     #[test]
     fn it_works_4() {
         let mem0 = AlignedData128::alloc(1000);
-        let addr = mem0.as_ptr() as *const u8 as u64;
+        let addr = mem0.as_ptr() as u64;
         assert_eq!(addr % 128, 0);
         assert!(mem0.len() >= 1000);
     }
     #[test]
     fn it_works_5() {
         let mem0 = AlignedData128::alloc(1);
-        let addr = mem0.as_ptr() as *const u8 as u64;
+        let addr = mem0.as_ptr() as u64;
         assert_eq!(addr % 128, 0);
         assert_eq!(mem0.len(), 128);
     }
