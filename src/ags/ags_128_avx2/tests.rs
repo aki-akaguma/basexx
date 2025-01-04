@@ -18,6 +18,9 @@ fn gen_data_ags_64() -> (AsciiGraphicSet, Vec<u8>, Vec<u8>) {
 
 #[test]
 fn test_ags_ascii_to_binary_128_avx2_1() {
+    if !is_x86_feature_detected!("avx2") {
+        return;
+    }
     let (ags, bin_buf, asc_buf) = gen_data_ags_64();
     let mut buf = asc_buf.clone();
     let r = unsafe { _ascii_to_binary_128_avx2(&ags.a128map, &mut buf) };
@@ -27,6 +30,9 @@ fn test_ags_ascii_to_binary_128_avx2_1() {
 
 #[test]
 fn test_ags_ascii_to_binary_128_avx2_2() {
+    if !is_x86_feature_detected!("avx2") {
+        return;
+    }
     let (ags, bin_buf, asc_buf) = gen_data_ags_64();
     let mut buf = Vec::<u8>::with_capacity(4 * 64);
     buf.extend_from_slice(&asc_buf);
@@ -45,6 +51,9 @@ fn test_ags_ascii_to_binary_128_avx2_2() {
 
 #[test]
 fn test_ags_ascii_to_binary_128_avx2_3() {
+    if !is_x86_feature_detected!("avx2") {
+        return;
+    }
     let (ags, _bin_buf, asc_buf0) = gen_data_ags_64();
     for i in 0..64 {
         let mut buf = asc_buf0.clone();
