@@ -56,6 +56,93 @@ fn it_works_4() {
     let r2 = _decode_base64_scalar(&ags, &r1).unwrap();
     assert_eq!(r2, inp);
 }
+#[test]
+fn it_errors_1() {
+    //          0         1         2         3         4          5         6         7
+    //          012345678901234567890123456789012345678901234 5678901234567890123456789012
+    let inp = b"0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijklmnopqrstuvw".to_vec();
+    //
+    let cmap = "0123456789:;";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(12)));
+    //
+    let cmap = "0123456789:;<";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(50)));
+    //
+    let cmap = "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`ab";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(51)));
+    //
+    let cmap = "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abc";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(53)));
+    //
+    let cmap = "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcde";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(56)));
+    //
+    let cmap = "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefgh";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(59)));
+    //
+    let cmap = "0123456789:;<=>?@ABCDEFGHIJKLMNOPQRSTUVWXYZ[\\]^_`abcdefghijk";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(62)));
+}
+#[test]
+fn it_errors_2() {
+    //
+    let cmap = "0123456789abcde";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let inp = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_vec();
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(16)));
+    //
+    let cmap = "0123456789abcdefA";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let inp = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_vec();
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(20)));
+    //
+    let cmap = "0123456789abcdefABCDE";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let inp = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_vec();
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(21)));
+    //
+    let cmap = "0123456789abcdefABCDEF";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let inp = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_vec();
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(52)));
+    //
+    let cmap = "0123456789abcdefABCDEFGHIJKLMNOPQRSTUVWXYZghijklmno";
+    //"pqrstuvwxyz";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let inp = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_vec();
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(52)));
+    //
+    let cmap = "0123456789abcdefABCDEFGHIJKLMNOPQRSTUVWXYZghijklmnopq";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let inp = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_vec();
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(57)));
+    //
+    let cmap = "0123456789abcdefABCDEFGHIJKLMNOPQRSTUVWXYZghijklmnopqrstuv";
+    let ags = AsciiGraphicSet::with_str(cmap);
+    let inp = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789".to_vec();
+    let r1 = _encode_base64_scalar(&ags, &inp);
+    assert_eq!(r1, Err(EncodeError::InvalidIndex(61)));
+}
 
 #[test]
 fn test_base64_scalar_file_t4_enc() {
