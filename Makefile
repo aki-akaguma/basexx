@@ -32,3 +32,8 @@ ubench-build:
 
 ubench:
 	cargo bench --features="ubench"
+
+cov:
+	cargo llvm-cov
+	cargo llvm-cov --output-dir target/llvm-cov --text report
+	cargo llvm-cov --output-dir target/llvm-cov --html report
