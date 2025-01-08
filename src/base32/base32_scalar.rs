@@ -41,12 +41,12 @@ pub(crate) fn _encode_base32_scalar_chunks10(
             let b4 = aa[4];
             //
             let v0 = b0 >> 3;
-            let v1 = (b0 & 0b111) << 2 | (b1 >> 6);
+            let v1 = ((b0 & 0b111) << 2) | (b1 >> 6);
             let v2 = (b1 & 0b111110) >> 1;
-            let v3 = (b1 & 0b1) << 4 | (b2 >> 4);
-            let v4 = (b2 & 0b1111) << 1 | (b3 >> 7);
+            let v3 = ((b1 & 0b1) << 4) | (b2 >> 4);
+            let v4 = ((b2 & 0b1111) << 1) | (b3 >> 7);
             let v5 = (b3 & 0b1111100) >> 2;
-            let v6 = (b3 & 0b11) << 3 | (b4 >> 5);
+            let v6 = ((b3 & 0b11) << 3) | (b4 >> 5);
             let v7 = b4 & 0b11111;
             // from binary to ascii
             let v0 = ags.getq(v0)?;
@@ -75,12 +75,12 @@ pub(crate) fn _encode_base32_scalar_chunks10(
             let b4 = aa[9];
             //
             let v0 = b0 >> 3;
-            let v1 = (b0 & 0b111) << 2 | (b1 >> 6);
+            let v1 = ((b0 & 0b111) << 2) | (b1 >> 6);
             let v2 = (b1 & 0b111110) >> 1;
-            let v3 = (b1 & 0b1) << 4 | (b2 >> 4);
-            let v4 = (b2 & 0b1111) << 1 | (b3 >> 7);
+            let v3 = ((b1 & 0b1) << 4) | (b2 >> 4);
+            let v4 = ((b2 & 0b1111) << 1) | (b3 >> 7);
             let v5 = (b3 & 0b1111100) >> 2;
-            let v6 = (b3 & 0b11) << 3 | (b4 >> 5);
+            let v6 = ((b3 & 0b11) << 3) | (b4 >> 5);
             let v7 = b4 & 0b11111;
             // from binary to ascii
             let v0 = ags.getq(v0)?;
@@ -129,12 +129,12 @@ pub(crate) fn _encode_base32_scalar_chunks5(
             let b3 = aa[3];
             let b4 = aa[4];
             let v0 = b0 >> 3;
-            let v1 = (b0 & 0b111) << 2 | (b1 >> 6);
+            let v1 = ((b0 & 0b111) << 2) | (b1 >> 6);
             let v2 = (b1 & 0b111110) >> 1;
-            let v3 = (b1 & 0b1) << 4 | (b2 >> 4);
-            let v4 = (b2 & 0b1111) << 1 | (b3 >> 7);
+            let v3 = ((b1 & 0b1) << 4) | (b2 >> 4);
+            let v4 = ((b2 & 0b1111) << 1) | (b3 >> 7);
             let v5 = (b3 & 0b1111100) >> 2;
-            let v6 = (b3 & 0b11) << 3 | (b4 >> 5);
+            let v6 = ((b3 & 0b11) << 3) | (b4 >> 5);
             let v7 = b4 & 0b11111;
             //
             // from binary to ascii
@@ -177,7 +177,7 @@ fn _encode_base32_scalar_rest(
             let b0 = inp[0];
             let b1 = 0;
             let v0 = b0 >> 3;
-            let v1 = (b0 & 0b111) << 2 | (b1 >> 6);
+            let v1 = ((b0 & 0b111) << 2) | (b1 >> 6);
             //
             // from binary to ascii
             let v0 = ags.getq(v0)?;
@@ -192,9 +192,9 @@ fn _encode_base32_scalar_rest(
             let b1 = inp[1];
             let b2 = 0;
             let v0 = b0 >> 3;
-            let v1 = (b0 & 0b111) << 2 | (b1 >> 6);
+            let v1 = ((b0 & 0b111) << 2) | (b1 >> 6);
             let v2 = (b1 & 0b111110) >> 1;
-            let v3 = (b1 & 0b1) << 4 | (b2 >> 4);
+            let v3 = ((b1 & 0b1) << 4) | (b2 >> 4);
             //
             // from binary to ascii
             let v0 = ags.getq(v0)?;
@@ -214,10 +214,10 @@ fn _encode_base32_scalar_rest(
             let b2 = inp[2];
             let b3 = 0;
             let v0 = b0 >> 3;
-            let v1 = (b0 & 0b111) << 2 | (b1 >> 6);
+            let v1 = ((b0 & 0b111) << 2) | (b1 >> 6);
             let v2 = (b1 & 0b111110) >> 1;
-            let v3 = (b1 & 0b1) << 4 | (b2 >> 4);
-            let v4 = (b2 & 0b1111) << 1 | (b3 >> 7);
+            let v3 = ((b1 & 0b1) << 4) | (b2 >> 4);
+            let v4 = ((b2 & 0b1111) << 1) | (b3 >> 7);
             //
             // from binary to ascii
             let v0 = ags.getq(v0)?;
@@ -240,12 +240,12 @@ fn _encode_base32_scalar_rest(
             let b3 = inp[3];
             let b4 = 0;
             let v0 = b0 >> 3;
-            let v1 = (b0 & 0b111) << 2 | (b1 >> 6);
+            let v1 = ((b0 & 0b111) << 2) | (b1 >> 6);
             let v2 = (b1 & 0b111110) >> 1;
-            let v3 = (b1 & 0b1) << 4 | (b2 >> 4);
-            let v4 = (b2 & 0b1111) << 1 | (b3 >> 7);
+            let v3 = ((b1 & 0b1) << 4) | (b2 >> 4);
+            let v4 = ((b2 & 0b1111) << 1) | (b3 >> 7);
             let v5 = (b3 & 0b1111100) >> 2;
-            let v6 = (b3 & 0b11) << 3 | (b4 >> 5);
+            let v6 = ((b3 & 0b11) << 3) | (b4 >> 5);
             //
             // from binary to ascii
             let v0 = ags.getq(v0)?;

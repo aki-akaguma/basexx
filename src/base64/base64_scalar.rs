@@ -42,12 +42,12 @@ pub(crate) fn _encode_base64_scalar_chunks6(
             let b5 = aa[5];
             //
             let v0 = b0 >> 2;
-            let v1 = (b0 & 0b11) << 4 | (b1 >> 4);
-            let v2 = (b1 & 0b1111) << 2 | (b2 >> 6);
+            let v1 = ((b0 & 0b11) << 4) | (b1 >> 4);
+            let v2 = ((b1 & 0b1111) << 2) | (b2 >> 6);
             let v3 = b2 & 0b111111;
             let v4 = b3 >> 2;
-            let v5 = (b3 & 0b11) << 4 | (b4 >> 4);
-            let v6 = (b4 & 0b1111) << 2 | (b5 >> 6);
+            let v5 = ((b3 & 0b11) << 4) | (b4 >> 4);
+            let v6 = ((b4 & 0b1111) << 2) | (b5 >> 6);
             let v7 = b5 & 0b111111;
             //
             // from binary to ascii
@@ -94,8 +94,8 @@ fn _encode_base64_scalar_chunks3(
             let b1 = aa[1];
             let b2 = aa[2];
             let v0 = b0 >> 2;
-            let v1 = (b0 & 0b11) << 4 | (b1 >> 4);
-            let v2 = (b1 & 0b1111) << 2 | (b2 >> 6);
+            let v1 = ((b0 & 0b11) << 4) | (b1 >> 4);
+            let v2 = ((b1 & 0b1111) << 2) | (b2 >> 6);
             let v3 = b2 & 0b111111;
             //
             // from binary to ascii
@@ -130,7 +130,7 @@ fn _encode_base64_scalar_rest(
             let b0 = inp[0];
             let b1 = 0;
             let v0 = b0 >> 2;
-            let v1 = (b0 & 0b11) << 4 | (b1 >> 4);
+            let v1 = ((b0 & 0b11) << 4) | (b1 >> 4);
             //
             // from binary to ascii
             let v0 = ags.getq(v0)?;
@@ -145,8 +145,8 @@ fn _encode_base64_scalar_rest(
             let b1 = inp[1];
             let b2 = 0;
             let v0 = b0 >> 2;
-            let v1 = (b0 & 0b11) << 4 | (b1 >> 4);
-            let v2 = (b1 & 0b1111) << 2 | (b2 >> 6);
+            let v1 = ((b0 & 0b11) << 4) | (b1 >> 4);
+            let v2 = ((b1 & 0b1111) << 2) | (b2 >> 6);
             //
             // from binary to ascii
             let v0 = ags.getq(v0)?;
