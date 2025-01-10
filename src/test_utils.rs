@@ -53,7 +53,11 @@ pub fn read_file_ascii(fnm: &str) -> String {
     let mut f = std::fs::File::open(fnm).unwrap();
     let _ = f.read_to_end(&mut v);
     let vv = if v[v.len() - 1] == b'\n' {
-        &v[..(v.len() - 1)]
+        if v[v.len() - 2] == b'\r' {
+            &v[..(v.len() - 2)]
+        } else {
+            &v[..(v.len() - 1)]
+        }
     } else {
         &v
     };
