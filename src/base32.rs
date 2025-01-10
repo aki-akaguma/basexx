@@ -52,6 +52,7 @@ impl Base32 {
         /*
         _encode_base32_scalar(&self.ags, a)
         */
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if cfg!(target_feature = "sse2") {
             if is_x86_feature_detected!("avx2") {
                 unsafe { _encode_base32_avx2(&self.ags, a) }
@@ -63,11 +64,16 @@ impl Base32 {
         } else {
             _encode_base32_scalar(&self.ags, a)
         }
+        #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+        {
+            _encode_base32_scalar(&self.ags, a)
+        }
     }
     pub fn decode(&self, a: &str) -> Result<Vec<u8>, DecodeError> {
         /*
         _decode_base32_scalar(&self.ags, a)
         */
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
         if cfg!(target_feature = "sse2") {
             if is_x86_feature_detected!("avx2") {
                 unsafe { _decode_base32_avx2(&self.ags, a) }
@@ -77,6 +83,10 @@ impl Base32 {
                 _decode_base32_scalar(&self.ags, a)
             }
         } else {
+            _decode_base32_scalar(&self.ags, a)
+        }
+        #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+        {
             _decode_base32_scalar(&self.ags, a)
         }
     }
