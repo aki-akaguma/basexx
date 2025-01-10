@@ -103,6 +103,7 @@ impl AsciiGraphicSet {
         }
         Self { binmap, a128map }
     }
+    #[allow(dead_code)]
     #[inline]
     pub fn len(&self) -> usize {
         self.binmap.len()
