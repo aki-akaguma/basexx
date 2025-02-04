@@ -7,7 +7,7 @@ pub(crate) unsafe fn _binary_to_ascii_64_ssse3(
     buf: &mut [u8],
 ) -> Result<(), EncodeError> {
     assert_eq!(lup.len(), 64);
-    _binary_to_ascii_64_ssse3_chunks16(lup, buf)?;
+    unsafe { _binary_to_ascii_64_ssse3_chunks16(lup, buf)? };
     Ok(())
 }
 
@@ -26,10 +26,15 @@ pub(crate) unsafe fn _binary_to_ascii_64_ssse3_chunks16(
         //
         while buf_ptr < end_ptr_limit {
             let mut buf2 = [0u64; 2];
-            buf2.copy_from_slice(std::slice::from_raw_parts(buf_ptr as *const u64, 2));
-            _binary_to_ascii_64_ssse3_c16_chunks16(lup, &mut buf2)?;
-            *(buf_ptr as *mut u64) = buf2[0];
-            *((buf_ptr as *mut u64).add(1)) = buf2[1];
+            unsafe {
+                use std::slice::from_raw_parts;
+                buf2.copy_from_slice(from_raw_parts(buf_ptr as *const u64, 2));
+                _binary_to_ascii_64_ssse3_c16_chunks16(lup, &mut buf2)?;
+            }
+            unsafe {
+                *(buf_ptr as *mut u64) = buf2[0];
+                *((buf_ptr as *mut u64).add(1)) = buf2[1];
+            }
             //
             buf_ptr = unsafe { buf_ptr.add(16) };
         }
@@ -50,7 +55,7 @@ pub(crate) unsafe fn _binary_to_ascii_64_ssse3_c16(
     buf: &mut [u64; 2],
 ) -> Result<(), EncodeError> {
     assert_eq!(lup.len(), 64);
-    _binary_to_ascii_64_ssse3_c16_chunks16(lup, buf)?;
+    unsafe { _binary_to_ascii_64_ssse3_c16_chunks16(lup, buf)? };
     Ok(())
 }
 
@@ -81,7 +86,7 @@ pub(crate) unsafe fn _binary_to_ascii_64_ssse3_c16_chunks16(
     #[cfg(target_arch = "x86_64")]
     use core::arch::x86_64::*;
     //
-    {
+    unsafe {
         let buf_ptr = buf.as_mut_ptr() as *mut u8;
         //
         let mm_map1 = _mm_loadu_si128(lup.as_ptr() as *const __m128i);

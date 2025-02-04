@@ -7,7 +7,7 @@ pub(crate) unsafe fn _ascii_to_binary_128_avx2(
     buf: &mut [u8],
 ) -> Result<(), DecodeError> {
     assert_eq!(lup.len(), 128);
-    _ascii_to_binary_128_avx2_chunks32(lup, buf)?;
+    unsafe { _ascii_to_binary_128_avx2_chunks32(lup, buf)? };
     Ok(())
 }
 
@@ -26,12 +26,17 @@ pub(crate) unsafe fn _ascii_to_binary_128_avx2_chunks32(
         //
         while buf_ptr < end_ptr_limit {
             let mut buf2 = [0u64; 4];
-            buf2.copy_from_slice(std::slice::from_raw_parts(buf_ptr as *const u64, 4));
-            _ascii_to_binary_128_avx2_c32_chunks32(lup, &mut buf2)?;
-            *(buf_ptr as *mut u64) = buf2[0];
-            *((buf_ptr as *mut u64).add(1)) = buf2[1];
-            *((buf_ptr as *mut u64).add(2)) = buf2[2];
-            *((buf_ptr as *mut u64).add(3)) = buf2[3];
+            unsafe {
+                use std::slice::from_raw_parts;
+                buf2.copy_from_slice(from_raw_parts(buf_ptr as *const u64, 4));
+                _ascii_to_binary_128_avx2_c32_chunks32(lup, &mut buf2)?;
+            }
+            unsafe {
+                *(buf_ptr as *mut u64) = buf2[0];
+                *((buf_ptr as *mut u64).add(1)) = buf2[1];
+                *((buf_ptr as *mut u64).add(2)) = buf2[2];
+                *((buf_ptr as *mut u64).add(3)) = buf2[3];
+            }
             //
             buf_ptr = unsafe { buf_ptr.add(32) };
         }
@@ -52,7 +57,7 @@ pub(crate) unsafe fn _ascii_to_binary_128_avx2_c32(
     buf: &mut [u64; 4],
 ) -> Result<(), DecodeError> {
     assert_eq!(lup.len(), 128);
-    _ascii_to_binary_128_avx2_c32_chunks32(lup, buf)?;
+    unsafe { _ascii_to_binary_128_avx2_c32_chunks32(lup, buf)? };
     Ok(())
 }
 
@@ -83,7 +88,7 @@ pub(crate) unsafe fn _ascii_to_binary_128_avx2_c32_chunks32(
     #[cfg(target_arch = "x86_64")]
     use core::arch::x86_64::*;
     //
-    {
+    unsafe {
         let buf_ptr = buf.as_mut_ptr() as *mut u8;
         //
         // ASCII graphic: U+0021 '!' ..= U+007E '~': 33..=126
