@@ -58,7 +58,7 @@ fn _encode_base32i(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
     // encode binary
     let (inp, inp_sz) = {
         let old_sz = a.len();
-        let new_sz = ((old_sz + 4) / 5) * 5;
+        let new_sz = old_sz.div_ceil(5) * 5;
         let mut aa = Vec::with_capacity(new_sz);
         aa.extend(a);
         aa.resize(new_sz, 0u8);

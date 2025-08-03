@@ -6,7 +6,7 @@ pub(crate) unsafe fn _encode_base32_ssse3(
     ags: &AsciiGraphicSet,
     inp: &[u8],
 ) -> Result<String, EncodeError> {
-    let oup_sz = 1 + ((inp.len() + 4) / 5) * 8;
+    let oup_sz = 1 + inp.len().div_ceil(5) * 8;
     // encode binary
     let mut oup = vec![0u8; oup_sz];
     let oup_idx = unsafe { _encode_base32_ssse3_chunks10(ags, inp, &mut oup[0..])? };

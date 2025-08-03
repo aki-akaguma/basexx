@@ -2,7 +2,7 @@ use basexx::*;
 use std::io::Read;
 
 fn eprintln_and_exit(prog: &str) -> ! {
-    eprintln!("[usage] {} -b {{56|58|32|64}} file", prog);
+    eprintln!("[usage] {prog} -b {{56|58|32|64}} file");
     std::process::exit(0);
 }
 
@@ -41,6 +41,6 @@ fn main() -> std::io::Result<()> {
             eprintln_and_exit(args[0].as_str());
         }
     };
-    println!("{}", oup);
+    println!("{oup}");
     Ok(())
 }

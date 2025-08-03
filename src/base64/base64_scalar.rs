@@ -12,7 +12,7 @@ pub(crate) fn _encode_base64_scalar(
     ags: &AsciiGraphicSet,
     inp: &[u8],
 ) -> Result<String, EncodeError> {
-    let oup_sz = 1 + ((inp.len() + 2) / 3) * 4;
+    let oup_sz = 1 + inp.len().div_ceil(3) * 4;
     let mut oup = vec![0u8; oup_sz];
     let oup_idx = _encode_base64_scalar_chunks6(ags, inp, &mut oup[0..])?;
     oup.resize(oup_idx, 0u8);

@@ -8,7 +8,7 @@ pub(crate) unsafe fn _encode_base64_ssse3(
     ags: &AsciiGraphicSet,
     inp: &[u8],
 ) -> Result<String, EncodeError> {
-    let oup_sz = 1 + ((inp.len() + 2) / 3) * 4;
+    let oup_sz = 1 + inp.len().div_ceil(3) * 4;
     let mut oup = vec![0u8; oup_sz];
     let oup_idx = unsafe { _encode_base64_ssse3_chunks12(ags, inp, &mut oup[0..])? };
     oup.resize(oup_idx, 0u8);

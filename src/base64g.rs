@@ -57,7 +57,7 @@ impl Base64G {
 #[inline(never)]
 fn _encode_base64g(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError> {
     let mut in_len = a.len();
-    let mut out_len = 1 + ((in_len + 2) / 3) * 4;
+    let mut out_len = 1 + in_len.div_ceil(3) * 4;
     let mut out = vec![0u8; out_len];
     let mut i_idx = 0;
     let mut o_idx = 0;
