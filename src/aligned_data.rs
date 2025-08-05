@@ -23,6 +23,7 @@ impl AlignedData64 {
         let data = unsafe {
             #[allow(clippy::unsound_collection_transmute)]
             let mut data = std::mem::transmute::<Vec<AlignedData64>, Vec<u8>>(vec);
+            assert!(size * AD64SZ <= data.capacity());
             data.set_len(size * AD64SZ);
             data
         };
@@ -55,6 +56,7 @@ impl AlignedData128 {
         let data = unsafe {
             #[allow(clippy::unsound_collection_transmute)]
             let mut data = std::mem::transmute::<Vec<AlignedData128>, Vec<u8>>(vec);
+            assert!(size * AD64SZ <= data.capacity());
             data.set_len(size * AD128SZ);
             data
         };
