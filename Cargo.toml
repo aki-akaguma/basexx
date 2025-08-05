@@ -35,8 +35,8 @@ num-bigint = "0.4"
 rug = { version="1.26", optional=true }
 
 [dev-dependencies]
-criterion = { version="0.5", default-features=false, features=["rayon"]}
-rstest = "0.24"
+criterion = { version="0.7", default-features=false, features=["rayon"]}
+rstest = "0.26"
 rstest_reuse = "0.7"
 
 [profile.bench]
