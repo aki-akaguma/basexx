@@ -1,13 +1,18 @@
 #
 
-all:
-	cargo build
+all: readme
+
+readme: README.md
+
+README.md: README.tpl src/lib.rs
+	cargo readme > $@
 
 clean:
-	cargo clean
+	@cargo clean
+	@rm -f z.* *.log *.tmp
 
 clippy:
-	cargo clippy --tests
+	cargo clippy --offline --tests --workspace
 
 clippy-all:
 	cargo clippy --tests -- -Dclippy::all
@@ -17,7 +22,13 @@ test-build:
 	sync
 
 test:
-	cargo test
+	cargo test --offline
+
+fmt:
+	cargo fmt
+
+doc:
+	cargo doc --features dox
 
 bench-build:
 	cargo bench --features="abench" --no-run

@@ -4,6 +4,14 @@ version = "0.1.0"
 edition = "2021"
 rust-version = "1.74.0"
 
+authors = ["aki <aki.akaguma@hotmail.com>"]
+description = "basexx utilities. base32, base64, base58, base56..."
+keywords = ["base32", "base64", "base56", "base58", "encode", "decode", "no_std"]
+categories = ["encoding"]
+license = "MIT OR Apache-2.0"
+readme = "README.md"
+repository = "https://github.com/aki-akaguma/basexx"
+
 [features]
 defaults = []
 aligned_data = []
@@ -15,6 +23,12 @@ bench = []
 abench = ["bench"]
 ubench = ["bench"]
 nobench = []
+
+dox = []
+no_std = []
+
+[package.metadata.docs.rs]
+features = ["dox"]
 
 [dependencies]
 num-bigint = "0.4"
