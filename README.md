@@ -36,7 +36,6 @@
 *   **`base58r`:** This module offers a `rug`-based implementation of Base58 for arbitrary-precision arithmetic.
 *   **`base64`:** This module implements the Base64 encoding and decoding functionality.
 *   **`base64g`:** This module provides a Base64 implementation with padding.
-*   **`aligned_data`:** This module provides helper functions for creating aligned data structures, which can improve performance in certain SIMD operations.
 
 #### Usage:
 
@@ -47,14 +46,12 @@ Each base encoding is exposed as a struct (e.g., `Base32`, `Base64`) that can be
 ```rust
 use basexx::Base64;
 
-fn main() {
-    let data = b"Hello, world!";
-    let base64 = Base64::new();
-    let encoded = base64.encode(data).unwrap();
-    println!("Encoded: {}", encoded);
-    let decoded = base64.decode(&encoded).unwrap();
-    assert_eq!(data, &decoded[..]);
-}
+let data = b"Hello, world!";
+let base64 = Base64::new();
+let encoded = base64.encode(data).unwrap();
+println!("Encoded: {}", encoded);
+let decoded = base64.decode(&encoded).unwrap();
+assert_eq!(data, &decoded[..]);
 ```
 
 # Changelogs
@@ -85,4 +82,4 @@ at your option.
 [test-macos-image]: https://github.com/aki-akaguma/basexx/actions/workflows/test-macos.yml/badge.svg
 [test-macos-link]: https://github.com/aki-akaguma/basexx/actions/workflows/test-macos.yml
 [test-windows-image]: https://github.com/aki-akaguma/basexx/actions/workflows/test-windows.yml/badge.svg
-[test-windows-link]: https://github.com/aki-akaguma/basexx/actions/workflows/test-windows.yml
+~~ [test-windows-link]: https://github.com/aki-akaguma/basexx/actions/workflows/test-windows.yml ~~
