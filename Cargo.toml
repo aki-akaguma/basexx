@@ -1,12 +1,12 @@
 [package]
 name = "basexx"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 rust-version = "1.74.0"
 
 authors = ["aki <aki.akaguma@hotmail.com>"]
 description = "basexx utilities. base32, base64, base58, base56..."
-keywords = ["base32", "base64", "base56", "base58", "encode", "decode", "no_std"]
+keywords = ["base32", "base64", "base56", "base58", "no_std"]
 categories = ["encoding"]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
