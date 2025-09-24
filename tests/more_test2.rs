@@ -3,7 +3,6 @@ use rstest::rstest;
 use rstest_reuse::{self, *};
 
 mod utils;
-use utils::*;
 
 #[template]
 #[rstest]
@@ -64,7 +63,11 @@ fn base56_encode_more_test_2(#[case] input: &[u8], #[case] output: &str) {
 #[apply(base56_more_cases_2)]
 fn base56_decode_more_test_2(#[case] output: &[u8], #[case] input: &str) {
     let inp = input.to_string();
-    let oup = if input == "2" { vec![0u8, 0u8] } else { output.to_vec() };
+    let oup = if input == "2" {
+        vec![0u8, 0u8]
+    } else {
+        output.to_vec()
+    };
     let base56 = Base56::default();
     assert_eq!(base56.decode(&inp).unwrap(), oup);
 }
@@ -96,7 +99,11 @@ fn base58_encode_more_test_2(#[case] input: &[u8], #[case] output: &str) {
 #[apply(base58_more_cases_2)]
 fn base58_decode_more_test_2(#[case] output: &[u8], #[case] input: &str) {
     let inp = input.to_string();
-    let oup = if input == "1" { vec![0u8, 0u8] } else { output.to_vec() };
+    let oup = if input == "1" {
+        vec![0u8, 0u8]
+    } else {
+        output.to_vec()
+    };
     let base58 = Base58::default();
     assert_eq!(base58.decode(&inp).unwrap(), oup);
 }
