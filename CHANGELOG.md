@@ -7,6 +7,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 ### Changed
+* minimum test version 1.86.0 on `.github/workflows`
 * update crate: criterion(0.8)
 
 
