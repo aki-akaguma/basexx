@@ -1,5 +1,6 @@
 use basexx::*;
 use criterion::*;
+use std::hint::black_box;
 
 mod utils;
 
