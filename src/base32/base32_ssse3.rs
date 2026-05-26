@@ -11,6 +11,8 @@ pub(crate) unsafe fn _encode_base32_ssse3(
     let mut oup = vec![0u8; oup_sz];
     let oup_idx = unsafe { _encode_base32_ssse3_chunks10(ags, inp, &mut oup[0..])? };
     oup.resize(oup_idx, 0u8);
+    // Safety: The encoding process strictly uses ASCII characters from AsciiGraphicSet.
+    debug_assert!(std::str::from_utf8(&oup).is_ok());
     let string = unsafe { String::from_utf8_unchecked(oup) };
     assert!(string.len() == oup_idx);
     Ok(string)

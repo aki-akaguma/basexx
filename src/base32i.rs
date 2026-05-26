@@ -114,6 +114,8 @@ fn _encode_base32i(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
     oupp.reverse();
     ags.binary_to_ascii(&mut oupp)?;
     let oupp_sz = oupp.len();
+    // Safety: The encoding process strictly uses ASCII characters from AsciiGraphicSet.
+    debug_assert!(std::str::from_utf8(&oupp).is_ok());
     let string = unsafe { String::from_utf8_unchecked(oupp) };
     assert!(string.len() == oupp_sz);
     Ok(string)

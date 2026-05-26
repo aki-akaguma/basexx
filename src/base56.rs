@@ -69,6 +69,8 @@ fn _encode_base56(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeError
     // from binary to ascii
     ags.binary_to_ascii(&mut oup)?;
     let oup_sz = oup.len();
+    // Safety: The encoding process strictly uses ASCII characters from AsciiGraphicSet.
+    debug_assert!(std::str::from_utf8(&oup).is_ok());
     let string = unsafe { String::from_utf8_unchecked(oup) };
     assert!(string.len() == oup_sz);
     Ok(string)

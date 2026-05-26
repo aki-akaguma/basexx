@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Resolve potential Undefined Behavior (UB) in SIMD implementations by replacing unaligned pointer dereferences with safe `bytemuck` primitives and `std::ptr::copy_nonoverlapping`.
 - Fix broken benchmark build caused by missing legacy `aligned_data` module.
+- Improve safety of `from_utf8_unchecked` usage by adding `debug_assert!` validation and safety documentation across all encoding modules.
 
 ### Changed
 - Unify runtime CPU feature detection logic using a new `x86_dispatch!` macro, reducing code duplication in `ags`, `base32`, and `base64` modules.

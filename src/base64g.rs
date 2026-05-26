@@ -125,6 +125,8 @@ fn _encode_base64g(ags: &AsciiGraphicSet, a: &[u8]) -> Result<String, EncodeErro
     }
     out.resize(o_idx, 0u8);
     let out_sz = out.len();
+    // Safety: The encoding process strictly uses ASCII characters from AsciiGraphicSet.
+    debug_assert!(std::str::from_utf8(&out).is_ok());
     let string = unsafe { String::from_utf8_unchecked(out) };
     assert!(string.len() == out_sz);
     Ok(string)
