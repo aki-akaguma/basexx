@@ -131,8 +131,9 @@ pub(crate) unsafe fn _decode_base64_ssse3_chunks16(
         //
         while inp_ptr < end_ptr_limit {
             // from ascii to binary
-            let a16 = unsafe { std::slice::from_raw_parts(inp_ptr as *const u64, 2) };
-            cc16.copy_from_slice(a16);
+            unsafe {
+                std::ptr::copy_nonoverlapping(inp_ptr, cc16.as_mut_ptr() as *mut u8, 16);
+            }
             ags.ascii_to_binary_64_ssse3(&mut cc16)?;
             unsafe {
                 //

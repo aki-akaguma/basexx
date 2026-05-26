@@ -4,12 +4,9 @@
  *     https://en.wikipedia.org/wiki/ASCII
 */
 
-/*
-#[derive(Debug)]
-pub enum AgsError {
-    NotFound(u8),
-}
-*/
+#[cfg(feature = "aligned-vec")]
+use aligned_vec::{avec, AVec, ConstAlign};
+
 use super::*;
 
 mod ags_scalar;
@@ -45,16 +42,16 @@ mod ags_32_avx2;
 #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
 pub(crate) use ags_32_avx2::*;
 
-#[cfg(feature = "aligned_data")]
+#[cfg(feature = "aligned-vec")]
 #[derive(Debug)]
 pub(crate) struct AsciiGraphicSet {
     // binary to ascii map
-    binmap: Box<[u8]>,
+    binmap: AVec<u8, ConstAlign<64>>,
     // ascii to binary map
-    a128map: Box<[u8]>,
+    a128map: AVec<u8, ConstAlign<128>>,
 }
 
-#[cfg(not(feature = "aligned_data"))]
+#[cfg(not(feature = "aligned-vec"))]
 #[derive(Debug)]
 pub(crate) struct AsciiGraphicSet {
     // binary to ascii map
@@ -77,7 +74,7 @@ impl AsciiGraphicSet {
     pub fn with_str(a: &str) -> Self {
         Self::with_slice(a.as_bytes())
     }
-    #[cfg(not(feature = "aligned_data"))]
+    #[cfg(not(feature = "aligned-vec"))]
     #[allow(dead_code)]
     pub fn with_slice(a: &[u8]) -> Self {
         assert!(a.len() <= 64);
@@ -89,15 +86,14 @@ impl AsciiGraphicSet {
         }
         Self { binmap, a128map }
     }
-    #[cfg(feature = "aligned_data")]
+    #[cfg(feature = "aligned-vec")]
     #[allow(dead_code)]
     pub fn with_slice(a: &[u8]) -> Self {
         assert!(a.len() <= 64);
         assert_eq!(a.iter().position(|&x| !x.is_ascii_graphic()), None);
-        let mut binmap = AlignedData64::alloc(64);
+        let mut binmap = avec!([64]| 0x00; a.len());
         binmap[0..a.len()].copy_from_slice(a);
-        let mut a128map = AlignedData128::alloc(128);
-        a128map.fill(0xFF);
+        let mut a128map = avec!([128]| 0xFF; 128);
         for (idx, &a) in binmap.iter().enumerate() {
             a128map[a as usize] = idx as u8;
         }

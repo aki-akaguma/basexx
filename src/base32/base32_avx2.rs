@@ -142,8 +142,9 @@ pub(crate) unsafe fn _decode_base32_avx2_chunks32(
         //
         while inp_ptr < end_ptr_limit {
             // from ascii to binary
-            let a32 = unsafe { std::slice::from_raw_parts(inp_ptr as *const u64, 4) };
-            cc32.copy_from_slice(a32);
+            unsafe {
+                std::ptr::copy_nonoverlapping(inp_ptr, cc32.as_mut_ptr() as *mut u8, 32);
+            }
             ags.ascii_to_binary_32_avx2(&mut cc32)?;
             let mut out32 = [0u8; 32];
             unsafe {

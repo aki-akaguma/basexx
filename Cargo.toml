@@ -14,7 +14,7 @@ repository = "https://github.com/aki-akaguma/basexx"
 
 [features]
 defaults = []
-aligned_data = []
+aligned-vec = ["dep:aligned-vec"]
 #
 # with libgmp
 rug = ["dep:rug"]
@@ -32,7 +32,8 @@ features = ["dox"]
 
 [dependencies]
 num-bigint = "0.4"
-rug = { version="1.26", optional=true }
+rug = { version = "1.26", optional = true }
+aligned-vec = { version = "0.6", optional = true }
 
 [dev-dependencies]
 criterion = { version="0.8", default-features=false, features=["rayon"]}

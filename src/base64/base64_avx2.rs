@@ -49,9 +49,10 @@ pub(crate) unsafe fn _encode_base64_avx2_chunks24(
         while inp_ptr < end_ptr_limit {
             // 01234567|01234567|01234567|01234567|01234567|01234567|
             // aaaaaabb|bbbbcccc|ccdddddd|eeeeeeff|ffffgggg|gghhhhhh|
-            let inp_slice = unsafe { std::slice::from_raw_parts_mut(inp_ptr as *mut u32, 8) };
             let mut in32base = [0u32; 8];
-            in32base.copy_from_slice(inp_slice);
+            unsafe {
+                std::ptr::copy_nonoverlapping(inp_ptr, in32base.as_mut_ptr() as *mut u8, 32);
+            }
             let mut in32 = [0u32; 8];
             in32[0..3].copy_from_slice(&in32base[0..3]);
             in32[4..7].copy_from_slice(&in32base[3..6]);
@@ -143,8 +144,9 @@ pub(crate) unsafe fn _decode_base64_avx2_chunks32(
         //
         while inp_ptr < end_ptr_limit {
             // from ascii to binary
-            let a32 = unsafe { std::slice::from_raw_parts(inp_ptr as *const u64, 4) };
-            cc32.copy_from_slice(a32);
+            unsafe {
+                std::ptr::copy_nonoverlapping(inp_ptr, cc32.as_mut_ptr() as *mut u8, 32);
+            }
             ags.ascii_to_binary_64_avx2(&mut cc32)?;
             let mut out32 = [0u32; 8];
             unsafe {
