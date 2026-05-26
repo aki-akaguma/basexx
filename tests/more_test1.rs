@@ -139,4 +139,3 @@ fn base64_decode_more_test(#[case] output: &[u8], #[case] input: &str) {
     let base64 = Base64::default();
     assert_eq!(base64.decode(&inp).unwrap(), oup);
 }
-

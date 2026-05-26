@@ -34,6 +34,7 @@ features = ["dox"]
 num-bigint = "0.4"
 rug = { version = "1.26", optional = true }
 aligned-vec = { version = "0.6", optional = true }
+bytemuck = { version = "1.21", features = ["derive"] }
 
 [dev-dependencies]
 criterion = { version="0.8", default-features=false, features=["rayon"]}

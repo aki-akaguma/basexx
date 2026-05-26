@@ -22,69 +22,40 @@ pub(crate) unsafe fn _encode_base32_ssse3_chunks10(
     inp: &[u8],
     oup: &mut [u8],
 ) -> Result<usize, EncodeError> {
-    //panic!("PASS: SSE2");
     #[cfg(target_arch = "x86")]
     use core::arch::x86::*;
     #[cfg(target_arch = "x86_64")]
     use core::arch::x86_64::*;
     //
+    let mm_shuf: __m128i = unsafe { _mm_set_epi8(8, 9, 7, 8, 6, 7, 5, 6, 3, 4, 2, 3, 1, 2, 0, 1) };
+
+    let mut i_iter = inp.chunks_exact(10);
+    let mut o_iter = oup.chunks_exact_mut(16);
     let mut oup_idx = 0;
-    let inp = if inp.len() < 16 {
-        inp
-    } else {
-        let inp_len = inp.len();
-        let mut inp_ptr = inp.as_ptr();
-        let mut oup_ptr = oup.as_mut_ptr();
-        let end_ptr = unsafe { inp_ptr.add(inp_len) };
-        let end_ptr_limit = unsafe { end_ptr.sub(16 - 1) };
-        //
-        let mm_shuf: __m128i =
-            unsafe { _mm_set_epi8(8, 9, 7, 8, 6, 7, 5, 6, 3, 4, 2, 3, 1, 2, 0, 1) };
+
+    for (i_chunk, o_chunk) in i_iter.by_ref().zip(o_iter.by_ref()) {
+        let mut in16base = [0u8; 16];
+        in16base[0..10].copy_from_slice(i_chunk);
+
         let mut cc16 = [0u64; 2];
-        //
-        while inp_ptr < end_ptr_limit {
-            unsafe {
-                // 01234567|01234567|01234567|01234567|01234567
-                // aaaaabbb|bbcccccd|ddddeeee|efffffgg|ggghhhhh
-                //
-                // ggghhhhh|efffffgg|ddddeeee|bbcccccd|aaaaabbb
-                let mm_in = _mm_loadu_si128(inp_ptr as *const __m128i);
-                //
-                // efffffgg|ggghhhhh|ddddeeee|efffffgg|bbcccccd|ddddeeee|aaaaabbb|bbcccccd|
-                let mm_in = _mm_shuffle_epi8(mm_in, mm_shuf); /* ssse3 */
-                // 000000gg|ggg00000|0000eeee|e0000000|00ccccc0|00000000|aaaaa000|00000000|
-                let mm_t0 = _mm_and_si128(mm_in, _mm_set1_epi64x(0x03e0_0f80_3e00_f800));
-                // 00000000|000ggggg|00000000|000eeeee|00000000|000ccccc|00000000|000aaaaa|
-                let mm_t1 = _mm_mulhi_epu16(mm_t0, _mm_set1_epi64x(0x0800_0200_0080_0020));
-                // 00000000|000hhhhh|00000000|0fffff00|0000000d|dddd0000|00000bbb|bb000000|
-                let mm_t2 = _mm_and_si128(mm_in, _mm_set1_epi64x(0x001f_007c_01f0_07c0));
-                // 000hhhhh|00000000|000fffff|00000000|000ddddd|00000000|000bbbbb|00000000|
-                let mm_t3 = _mm_mullo_epi16(mm_t2, _mm_set1_epi64x(0x0100_0040_0010_0004));
-                //
-                // 000hhhhh|000ggggg|000fffff|000eeeee|000ddddd|000ccccc|000bbbbb|000aaaaa|
-                let mm_out = _mm_or_si128(mm_t1, mm_t3);
-                //
-                _mm_storeu_si128(cc16.as_mut_ptr() as *mut __m128i, mm_out);
-            }
-            //
-            let c16 = unsafe { std::slice::from_raw_parts_mut(oup_ptr, 16) };
-            oup_ptr = unsafe { oup_ptr.add(16) };
-            inp_ptr = unsafe { inp_ptr.add(5 * 2) };
-            //_mm_prefetch(inp_ptr.cast::<i8>(), _MM_HINT_T0);
-            //
-            // from binary to ascii
-            let cc16_slice =
-                unsafe { std::slice::from_raw_parts_mut(cc16.as_mut_ptr() as *mut u8, 16) };
-            ags.binary_to_ascii_32_ssse3(&mut cc16)?;
-            c16.copy_from_slice(cc16_slice);
+        unsafe {
+            let mm_in = _mm_loadu_si128(in16base.as_ptr() as *const __m128i);
+            let mm_in = _mm_shuffle_epi8(mm_in, mm_shuf);
+            let mm_t0 = _mm_and_si128(mm_in, _mm_set1_epi64x(0x03e0_0f80_3e00_f800));
+            let mm_t1 = _mm_mulhi_epu16(mm_t0, _mm_set1_epi64x(0x0800_0200_0080_0020));
+            let mm_t2 = _mm_and_si128(mm_in, _mm_set1_epi64x(0x001f_007c_01f0_07c0));
+            let mm_t3 = _mm_mullo_epi16(mm_t2, _mm_set1_epi64x(0x0100_0040_0010_0004));
+            let mm_out = _mm_or_si128(mm_t1, mm_t3);
+            _mm_storeu_si128(cc16.as_mut_ptr() as *mut __m128i, mm_out);
         }
-        oup_idx = unsafe { oup_ptr.offset_from(oup.as_ptr()) as usize };
-        let new_inp_len = unsafe { end_ptr.offset_from(inp_ptr) as usize };
-        let remaind = unsafe { std::slice::from_raw_parts(inp_ptr, new_inp_len) };
-        remaind
-    };
-    //
-    let oo_idx = _encode_base32_scalar_chunks5(ags, inp, &mut oup[oup_idx..])?;
+
+        ags.binary_to_ascii_32_ssse3(&mut cc16)?;
+        o_chunk.copy_from_slice(bytemuck::bytes_of(&cc16));
+        oup_idx += 16;
+    }
+
+    let remaind = i_iter.remainder();
+    let oo_idx = _encode_base32_scalar_chunks5(ags, remaind, &mut oup[oup_idx..])?;
     Ok(oup_idx + oo_idx)
 }
 
@@ -108,65 +79,43 @@ pub(crate) unsafe fn _decode_base32_ssse3_chunks16(
     inp: &[u8],
     oup: &mut [u8],
 ) -> Result<usize, DecodeError> {
-    //panic!("PASS: SSE2");
     #[cfg(target_arch = "x86")]
     use core::arch::x86::*;
     #[cfg(target_arch = "x86_64")]
     use core::arch::x86_64::*;
     //
+    let mm_shuf: __m128i =
+        unsafe { _mm_set_epi8(-1, -1, -1, -1, -1, -1, 11, 12, 13, 14, 15, 3, 4, 5, 6, 7) };
+
+    let mut i_iter = inp.chunks_exact(16);
+    let mut o_iter = oup.chunks_exact_mut(10);
     let mut oup_idx = 0;
-    let inp = if inp.len() < 16 {
-        inp
-    } else {
-        let inp_len = inp.len();
-        let mut inp_ptr = inp.as_ptr();
-        let mut oup_ptr = oup.as_mut_ptr();
-        let end_ptr = unsafe { inp_ptr.add(inp_len) };
-        let end_ptr_limit = unsafe { end_ptr.sub(16 - 1) };
-        //
-        let mm_shuf: __m128i =
-            unsafe { _mm_set_epi8(-1, -1, -1, -1, -1, -1, 11, 12, 13, 14, 15, 3, 4, 5, 6, 7) };
-        let mut cc16 = [0u64; 2];
-        //
-        while inp_ptr < end_ptr_limit {
-            // from ascii to binary
-            unsafe {
-                std::ptr::copy_nonoverlapping(inp_ptr, cc16.as_mut_ptr() as *mut u8, 16);
-            }
-            ags.ascii_to_binary_32_ssse3(&mut cc16)?;
-            unsafe {
-                //
-                // 000hhhhh|000ggggg|000fffff|000eeeee|000ddddd|000ccccc|000bbbbb|000aaaaa|
-                let mm_in = _mm_loadu_si128(cc16.as_ptr() as *const __m128i);
-                //
-                // 000000gg|ggghhhhh|000000ee|eeefffff|000000cc|cccddddd|000000aa|aaabbbbb|
-                let mm_t0 = _mm_maddubs_epi16(mm_in, _mm_set1_epi32(0x0120_0120)); /* ssse3 */
-                // 00000000|eeeeefff|ffgggggh|hhhh0000|00000000|aaaaabbb|bbcccccd|dddd0000|
-                let mm_t1 = _mm_madd_epi16(mm_t0, _mm_set1_epi32(0x0010_4000));
-                // aaaaabbb|bbcccccd|dddd0000|
-                let mm_t2 = _mm_slli_epi64(mm_t1, 40);
-                // 00000000|00000000|0000eeee|efffffgg|ggghhhhh|00000000|0000aaaa|abbbbbcc|
-                let mm_t3 = _mm_srli_epi64(mm_t1, 12);
-                // aaaaabbb|bbcccccd|ddddeeee|efffffgg|ggghhhhh|00000000|0000aaaa|abbbbbcc|
-                let mm_t4 = _mm_or_si128(mm_t2, mm_t3);
-                //
-                // 00000000|00000000|00000000|ggghhhhh|efffffgg|ddddeeee|bbcccccd|aaaaabbb|
-                let mm_out = _mm_shuffle_epi8(mm_t4, mm_shuf); /* ssse3 */
-                //
-                _mm_storeu_si128(oup_ptr as *mut __m128i, mm_out);
-            }
-            //
-            oup_ptr = unsafe { oup_ptr.add(10) };
-            inp_ptr = unsafe { inp_ptr.add(16) };
-            unsafe { _mm_prefetch(inp_ptr.cast::<i8>(), _MM_HINT_T0) };
+    let mut inp_idx = 0;
+
+    for (i_chunk, o_chunk) in i_iter.by_ref().zip(o_iter.by_ref()) {
+        let mut cc16: [u64; 2] = bytemuck::pod_read_unaligned(i_chunk);
+        ags.ascii_to_binary_32_ssse3(&mut cc16)?;
+
+        let mut out16 = [0u64; 2];
+        unsafe {
+            let mm_in = _mm_loadu_si128(cc16.as_ptr() as *const __m128i);
+            let mm_t0 = _mm_maddubs_epi16(mm_in, _mm_set1_epi32(0x0120_0120));
+            let mm_t1 = _mm_madd_epi16(mm_t0, _mm_set1_epi32(0x0010_4000));
+            let mm_t2 = _mm_slli_epi64(mm_t1, 40);
+            let mm_t3 = _mm_srli_epi64(mm_t1, 12);
+            let mm_t4 = _mm_or_si128(mm_t2, mm_t3);
+            let mm_out = _mm_shuffle_epi8(mm_t4, mm_shuf);
+            _mm_storeu_si128(out16.as_mut_ptr() as *mut __m128i, mm_out);
         }
-        oup_idx = unsafe { oup_ptr.offset_from(oup.as_ptr()) as usize };
-        let new_inp_len = unsafe { end_ptr.offset_from(inp_ptr) as usize };
-        let remaind = unsafe { std::slice::from_raw_parts(inp_ptr, new_inp_len) };
-        remaind
-    };
-    //
-    let oo_idx = _decode_base32_scalar_chunks8(ags, inp, &mut oup[oup_idx..])?;
+
+        o_chunk.copy_from_slice(&bytemuck::bytes_of(&out16)[0..10]);
+
+        oup_idx += 10;
+        inp_idx += 16;
+    }
+
+    let remaind = &inp[inp_idx..];
+    let oo_idx = _decode_base32_scalar_chunks8(ags, remaind, &mut oup[oup_idx..])?;
     Ok(oup_idx + oo_idx)
 }
 

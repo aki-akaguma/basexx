@@ -16,29 +16,16 @@ pub(crate) unsafe fn _binary_to_ascii_32_avx2_chunks32(
     lup: &[u8],
     buf: &mut [u8],
 ) -> Result<(), EncodeError> {
-    let buf = if buf.len() < 32 {
-        buf
-    } else {
-        let buf_len = buf.len();
-        let mut buf_ptr = buf.as_mut_ptr();
-        let end_ptr = unsafe { buf_ptr.add(buf_len) };
-        let end_ptr_limit = unsafe { end_ptr.sub(32 - 1) };
-        //
-        while buf_ptr < end_ptr_limit {
-            let mut buf2 = [0u64; 4];
-            unsafe {
-                std::ptr::copy_nonoverlapping(buf_ptr, buf2.as_mut_ptr() as *mut u8, 32);
-                _binary_to_ascii_32_avx2_c32_chunks32(lup, &mut buf2)?;
-                std::ptr::copy_nonoverlapping(buf2.as_ptr() as *const u8, buf_ptr, 32);
-            }
-            //
-            buf_ptr = unsafe { buf_ptr.add(32) };
+    let mut iter = buf.chunks_exact_mut(32);
+    for chunk in iter.by_ref() {
+        let mut buf2: [u64; 4] = bytemuck::pod_read_unaligned(chunk);
+        unsafe {
+            _binary_to_ascii_32_avx2_c32_chunks32(lup, &mut buf2)?;
         }
-        let new_buf_len = unsafe { end_ptr.offset_from(buf_ptr) as usize };
-        let remaind = unsafe { std::slice::from_raw_parts_mut(buf_ptr, new_buf_len) };
-        remaind
-    };
-    _binary_to_ascii_scalar(lup, buf)?;
+        chunk.copy_from_slice(bytemuck::bytes_of(&buf2));
+    }
+    let remaind = iter.into_remainder();
+    _binary_to_ascii_scalar(lup, remaind)?;
     //
     Ok(())
 }
