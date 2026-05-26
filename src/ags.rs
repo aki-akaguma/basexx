@@ -140,9 +140,8 @@ impl AsciiGraphicSet {
     #[allow(dead_code)]
     #[inline(always)]
     pub fn binary_to_ascii(&self, buf: &mut [u8]) -> Result<(), EncodeError> {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if cfg!(target_feature = "sse2") {
-            if is_x86_feature_detected!("avx2") {
+        x86_dispatch!(
+            avx2 => {
                 if self.len() == 64 {
                     unsafe { _binary_to_ascii_64_avx2(&self.binmap, buf) }
                 } else if self.len() == 32 {
@@ -150,7 +149,8 @@ impl AsciiGraphicSet {
                 } else {
                     _binary_to_ascii_scalar(&self.binmap, buf)
                 }
-            } else if is_x86_feature_detected!("ssse3") {
+            },
+            ssse3 => {
                 if self.len() == 64 {
                     unsafe { _binary_to_ascii_64_ssse3(&self.binmap, buf) }
                 } else if self.len() == 32 {
@@ -158,36 +158,26 @@ impl AsciiGraphicSet {
                 } else {
                     _binary_to_ascii_scalar(&self.binmap, buf)
                 }
-            } else {
+            },
+            fallback => {
                 _binary_to_ascii_scalar(&self.binmap, buf)
             }
-        } else {
-            _binary_to_ascii_scalar(&self.binmap, buf)
-        }
-        #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
-        {
-            _binary_to_ascii_scalar(&self.binmap, buf)
-        }
+        )
     }
     #[allow(dead_code)]
     #[inline(always)]
     pub fn ascii_to_binary(&self, buf: &mut [u8]) -> Result<(), DecodeError> {
-        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
-        if cfg!(target_feature = "sse2") {
-            if is_x86_feature_detected!("avx2") {
+        x86_dispatch!(
+            avx2 => {
                 unsafe { _ascii_to_binary_128_avx2(&self.a128map, buf) }
-            } else if is_x86_feature_detected!("ssse3") {
+            },
+            ssse3 => {
                 unsafe { _ascii_to_binary_128_ssse3(&self.a128map, buf) }
-            } else {
+            },
+            fallback => {
                 _ascii_to_binary_scalar(&self.a128map, buf)
             }
-        } else {
-            _ascii_to_binary_scalar(&self.a128map, buf)
-        }
-        #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
-        {
-            _ascii_to_binary_scalar(&self.a128map, buf)
-        }
+        )
     }
     //
     #[cfg(target_feature = "sse2")]

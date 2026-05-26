@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix broken benchmark build caused by missing legacy `aligned_data` module.
 
 ### Changed
+- Unify runtime CPU feature detection logic using a new `x86_dispatch!` macro, reducing code duplication in `ags`, `base32`, and `base64` modules.
 - Rename `aligned_data` feature to `aligned-vec` to match the actual dependency and clarify its purpose.
 - Refactor SIMD chunk processing logic to use safe slice iterators (`chunks_exact`) for better readability and robustness.
 - update crate: criterion(0.8)
