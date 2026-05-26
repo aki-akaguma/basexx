@@ -1,6 +1,7 @@
 use super::*;
 use crate::test_utils;
 use criterion::*;
+use std::hint::black_box;
 
 #[allow(dead_code)]
 pub fn bench_base64g_enc(c: &mut Criterion) {

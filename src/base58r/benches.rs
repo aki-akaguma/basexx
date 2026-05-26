@@ -1,6 +1,7 @@
 use super::*;
 use crate::test_utils;
 use criterion::*;
+use std::hint::black_box;
 
 #[cfg(feature = "rug")]
 #[allow(dead_code)]

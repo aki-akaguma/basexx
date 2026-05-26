@@ -1,3 +1,26 @@
+macro_rules! x86_dispatch {
+    (avx2 => $avx2_block:block, ssse3 => $ssse3_block:block, fallback => $fallback_block:block) => {{
+        #[cfg(any(target_arch = "x86", target_arch = "x86_64"))]
+        {
+            if cfg!(target_feature = "sse2") {
+                if is_x86_feature_detected!("avx2") {
+                    $avx2_block
+                } else if is_x86_feature_detected!("ssse3") {
+                    $ssse3_block
+                } else {
+                    $fallback_block
+                }
+            } else {
+                $fallback_block
+            }
+        }
+        #[cfg(not(any(target_arch = "x86", target_arch = "x86_64")))]
+        {
+            $fallback_block
+        }
+    }};
+}
+
 mod ags;
 use ags::*;
 
